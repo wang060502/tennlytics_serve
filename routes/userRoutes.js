@@ -50,6 +50,7 @@ const authenticateToken = require('../middleware/auth');
  *       400:
  *         description: 手机号已被注册
  */
+// 用户注册
 router.post('/register', userController.register);
 
 /**
@@ -102,6 +103,7 @@ router.post('/register', userController.register);
  *       401:
  *         description: 用户不存在或密码错误
  */
+// 用户登录
 router.post('/login', userController.login);
 
 /**
@@ -120,6 +122,7 @@ router.post('/login', userController.login);
  *       401:
  *         description: 未授权
  */
+// 获取用户信息
 router.get('/profile', authenticateToken, userController.getProfile);
 
 /**
@@ -158,6 +161,7 @@ router.get('/profile', authenticateToken, userController.getProfile);
  *       401:
  *         description: 未授权
  */
+// 更新用户信息
 router.put('/profile', authenticateToken, userController.updateProfile);
 
 /**
@@ -201,6 +205,7 @@ router.put('/profile', authenticateToken, userController.updateProfile);
  *       401:
  *         description: 未授权
  */
+// 获取用户列表
 router.get('/list', authenticateToken, userController.getUserList);
 
 module.exports = router; 

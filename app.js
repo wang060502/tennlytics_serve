@@ -1,8 +1,10 @@
 const express = require('express');
 const { testConnection } = require('./db/db');
 const userRoutes = require('./routes/userRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
+const path = require('path');
 const app = express();
 const port = 3000;
 
@@ -12,6 +14,9 @@ testConnection();
 // 中间件设置
 app.use(express.json()); // 用于解析 JSON 请求体
 app.use(express.urlencoded({ extended: true })); // 用于解析 URL 编码的请求体
+
+// 静态文件服务
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
@@ -24,6 +29,7 @@ app.get('/swagger.json', (req, res) => {
 
 // 路由设置
 app.use('/api/users', userRoutes);
+app.use('/api/files', uploadRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {
