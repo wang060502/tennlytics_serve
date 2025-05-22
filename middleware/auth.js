@@ -41,14 +41,20 @@ const checkPermission = (permission) => {
             const roleIds = userRoles.map(role => role.role_id);
 
             // 查询角色对应的权限
+            const placeholders = roleIds.map(() => '?').join(',');
             const permissions = await query(
-                'SELECT DISTINCT m.perms FROM sys_menu m ' +
-                'INNER JOIN sys_role_menu rm ON m.menu_id = rm.menu_id ' +
-                'WHERE rm.role_id IN (?) AND m.perms IS NOT NULL',
-                [roleIds]
+                `SELECT DISTINCT m.perms FROM sys_menu m
+                 INNER JOIN sys_role_menu rm ON m.menu_id = rm.menu_id
+                 WHERE rm.role_id IN (${placeholders}) AND m.perms IS NOT NULL`,
+                roleIds
             );
 
             const userPermissions = permissions.map(p => p.perms);
+
+            // console.log('userId:', userId);
+            // console.log('roleIds:', roleIds);
+            // console.log('userPermissions:', userPermissions);
+            // console.log('requiredPermission:', permission);
 
             if (!userPermissions.includes(permission)) {
                 return res.status(403).json({ code: 403, error: '没有操作权限' });
