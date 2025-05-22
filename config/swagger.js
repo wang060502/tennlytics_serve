@@ -1,24 +1,29 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
-  swaggerDefinition: {
-    swagger: '2.0',
+  definition: {
+    openapi: '3.0.0',
     info: {
-      title: 'Tennlytics API Documentation',
+      title: 'ERP API Documentation',
       version: '1.0.0',
-      description: 'Tennlytics API 接口文档',
+      description: 'ERP API 接口文档',
     },
-    host: 'localhost:3000',
-    basePath: '/',
-    schemes: ['http'],
-    securityDefinitions: {
-      bearerAuth: {
-        type: 'apiKey',
-        name: 'Authorization',
-        in: 'header',
-        description: 'JWT Authorization header using the Bearer scheme. Example: "Bearer {token}"'
+    servers: [
+      { url: 'http://localhost:3000' }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"'
+        }
       }
-    }
+    },
+    security: [
+      { bearerAuth: [] }
+    ]
   },
   apis: ['./routes/*.js'],
 };

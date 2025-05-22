@@ -1,7 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
-const authenticateToken = require('../middleware/auth');
+const { verifyToken, checkPermission } = require('../middleware/auth');
+const {
+    register,
+    login,
+    getProfile,
+    updateProfile,
+    getUserList,
+    assignUserRoles,
+    updateUserStatus,
+    resetPassword
+} = require('../controllers/userController');
 
 /**
  * @swagger
@@ -11,47 +20,48 @@ const authenticateToken = require('../middleware/auth');
  *       - Users
  *     summary: 用户注册
  *     description: 注册新用户
- *     parameters:
- *       - in: body
- *         name: body
- *         description: 用户注册信息
- *         required: true
- *         schema:
- *           type: object
- *           required:
- *             - phone_number
- *             - password
- *             - user_type
- *           properties:
- *             phone_number:
- *               type: string
- *               description: 手机号
- *             password:
- *               type: string
- *               description: 密码
- *             user_type:
- *               type: integer
- *               description: 用户类型（0-用户，1-教练，2-管理员）
- *             gender:
- *               type: integer
- *               description: 性别（0-男，1-女，2-其他）
- *             name:
- *               type: string
- *               description: 姓名
- *             age:
- *               type: integer
- *               description: 年龄
- *             avatar:
- *               type: string
- *               description: 头像URL
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: 用户名
+ *               password:
+ *                 type: string
+ *                 description: 密码
+ *               realName:
+ *                 type: string
+ *                 description: 真实姓名
+ *               avatar:
+ *                 type: string
+ *                 description: 头像URL
+ *               email:
+ *                 type: string
+ *                 description: 邮箱
+ *               mobile:
+ *                 type: string
+ *                 description: 手机号
+ *               deptId:
+ *                 type: integer
+ *                 description: 部门ID
+ *               status:
+ *                 type: integer
+ *                 description: 状态(0-禁用 1-启用)
  *     responses:
  *       201:
  *         description: 注册成功
  *       400:
- *         description: 手机号已被注册
+ *         description: 用户名已被注册
  */
 // 用户注册
-router.post('/register', userController.register);
+router.post('/register', register);
 
 /**
  * @swagger
@@ -61,50 +71,61 @@ router.post('/register', userController.register);
  *       - Users
  *     summary: 用户登录
  *     description: 用户登录接口
- *     parameters:
- *       - in: body
- *         name: body
- *         description: 登录信息
- *         required: true
- *         schema:
- *           type: object
- *           required:
- *             - phone_number
- *             - password
- *           properties:
- *             phone_number:
- *               type: string
- *               description: 手机号
- *             password:
- *               type: string
- *               description: 密码
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: 用户名
+ *               password:
+ *                 type: string
+ *                 description: 密码
  *     responses:
  *       200:
  *         description: 登录成功
- *         schema:
- *           type: object
- *           properties:
- *             token:
- *               type: string
- *               description: JWT token
- *             user:
+ *         content:
+ *           application/json:
+ *             schema:
  *               type: object
  *               properties:
- *                 id:
+ *                 code:
  *                   type: integer
- *                 phone_number:
+ *                   example: 200
+ *                 message:
  *                   type: string
- *                 user_type:
- *                   type: integer
- *                 name:
+ *                   example: 登录成功
+ *                 token:
  *                   type: string
- *                 avatar:
- *                   type: string
+ *                   description: JWT token
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: integer
+ *                     username:
+ *                       type: string
+ *                     realName:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     mobile:
+ *                       type: string
+ *                     deptId:
+ *                       type: integer
  *       401:
  *         description: 用户不存在或密码错误
  */
 // 用户登录
-router.post('/login', userController.login);
+router.post('/login', login);
 
 /**
  * @swagger
@@ -119,11 +140,52 @@ router.post('/login', userController.login);
  *     responses:
  *       200:
  *         description: 成功获取用户信息
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 userId:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 realName:
+ *                   type: string
+ *                 avatar:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 mobile:
+ *                   type: string
+ *                 deptId:
+ *                   type: integer
+ *                 status:
+ *                   type: integer
+ *                 lastLoginTime:
+ *                   type: string
+ *                   format: date-time
+ *                 createTime:
+ *                   type: string
+ *                   format: date-time
+ *                 roles:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       roleId:
+ *                         type: integer
+ *                       roleName:
+ *                         type: string
+ *                       roleCode:
+ *                         type: string
  *       401:
  *         description: 未授权
  */
 // 获取用户信息
-router.get('/profile', authenticateToken, userController.getProfile);
+router.get('/profile', verifyToken, getProfile);
 
 /**
  * @swagger
@@ -135,26 +197,28 @@ router.get('/profile', authenticateToken, userController.getProfile);
  *     description: 更新当前登录用户的信息
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: body
- *         name: body
- *         description: 用户信息
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             gender:
- *               type: integer
- *               description: 性别（0-男，1-女，2-其他）
- *             name:
- *               type: string
- *               description: 姓名
- *             age:
- *               type: integer
- *               description: 年龄
- *             avatar:
- *               type: string
- *               description: 头像URL
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               realName:
+ *                 type: string
+ *                 description: 真实姓名
+ *               avatar:
+ *                 type: string
+ *                 description: 头像URL
+ *               email:
+ *                 type: string
+ *                 description: 邮箱
+ *               mobile:
+ *                 type: string
+ *                 description: 手机号
+ *               deptId:
+ *                 type: integer
+ *                 description: 部门ID
  *     responses:
  *       200:
  *         description: 更新成功
@@ -162,11 +226,11 @@ router.get('/profile', authenticateToken, userController.getProfile);
  *         description: 未授权
  */
 // 更新用户信息
-router.put('/profile', authenticateToken, userController.updateProfile);
+router.put('/profile', verifyToken, updateProfile);
 
 /**
  * @swagger
- * /api/users/list:
+ * /api/users:
  *   get:
  *     tags:
  *       - Users
@@ -177,35 +241,206 @@ router.put('/profile', authenticateToken, userController.updateProfile);
  *     parameters:
  *       - in: query
  *         name: page
- *         type: integer
+ *         schema:
+ *           type: integer
  *         description: 页码
  *       - in: query
  *         name: limit
- *         type: integer
+ *         schema:
+ *           type: integer
  *         description: 每页数量
  *       - in: query
- *         name: user_type
- *         type: integer
- *         description: 用户类型
+ *         name: username
+ *         schema:
+ *           type: string
+ *         description: 用户名
  *       - in: query
- *         name: phone_number
- *         type: string
+ *         name: realName
+ *         schema:
+ *           type: string
+ *         description: 真实姓名
+ *       - in: query
+ *         name: mobile
+ *         schema:
+ *           type: string
  *         description: 手机号
  *       - in: query
- *         name: gender
- *         type: integer
- *         description: 性别
+ *         name: status
+ *         schema:
+ *           type: integer
+ *         description: 状态(0-禁用 1-启用)
  *       - in: query
- *         name: name
- *         type: string
- *         description: 姓名
+ *         name: deptId
+ *         schema:
+ *           type: integer
+ *         description: 部门ID
  *     responses:
  *       200:
  *         description: 成功获取用户列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: integer
+ *                       username:
+ *                         type: string
+ *                       realName:
+ *                         type: string
+ *                       avatar:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       mobile:
+ *                         type: string
+ *                       deptId:
+ *                         type: integer
+ *                       status:
+ *                         type: integer
+ *                       lastLoginTime:
+ *                         type: string
+ *                         format: date-time
+ *                       createTime:
+ *                         type: string
+ *                         format: date-time
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
  *       401:
  *         description: 未授权
  */
 // 获取用户列表
-router.get('/list', authenticateToken, userController.getUserList);
+router.get('/', verifyToken, checkPermission('user:list'), getUserList);
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: 分配用户角色
+ *     description: 为用户分配角色
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 用户ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - roleIds
+ *             properties:
+ *               roleIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: 角色ID列表
+ *     responses:
+ *       200:
+ *         description: 角色分配成功
+ *       401:
+ *         description: 未授权
+ */
+// 分配用户角色
+router.post('/:userId/roles', verifyToken, checkPermission('user:assign'), assignUserRoles);
+
+/**
+ * @swagger
+ * /api/users/{userId}/status:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: 修改用户状态
+ *     description: 修改用户状态（启用/禁用）
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 用户ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: integer
+ *                 description: 状态(0-禁用 1-启用)
+ *     responses:
+ *       200:
+ *         description: 状态更新成功
+ *       401:
+ *         description: 未授权
+ */
+// 修改用户状态
+router.put('/:userId/status', verifyToken, checkPermission('user:edit'), updateUserStatus);
+
+/**
+ * @swagger
+ * /api/users/{userId}/password:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: 重置用户密码
+ *     description: 重置指定用户的密码
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 用户ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: 新密码
+ *     responses:
+ *       200:
+ *         description: 密码重置成功
+ *       401:
+ *         description: 未授权
+ */
+// 重置用户密码
+router.put('/:userId/password', verifyToken, checkPermission('user:edit'), resetPassword);
 
 module.exports = router; 

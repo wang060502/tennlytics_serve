@@ -1,7 +1,11 @@
 const express = require('express');
 const { testConnection } = require('./db/db');
 const userRoutes = require('./routes/userRoutes');
+const roleRoutes = require('./routes/roleRoutes');
+const menuRoutes = require('./routes/menuRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const deptRoutes = require('./routes/deptRoutes');
+const operationLogRoutes = require('./routes/operationLogRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 const path = require('path');
@@ -19,7 +23,7 @@ app.use(express.urlencoded({ extended: true })); // 用于解析 URL 编码的�
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));            
 
 // 提供 Swagger JSON 文件
 app.get('/swagger.json', (req, res) => {
@@ -29,11 +33,15 @@ app.get('/swagger.json', (req, res) => {
 
 // 路由设置
 app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/menus', menuRoutes);
 app.use('/api/files', uploadRoutes);
+app.use('/api/depts', deptRoutes);
+app.use('/api/operation-logs', operationLogRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Tennlytics API' });
+  res.json({ message: 'Welcome to ERP API' });
 });
 
 // 健康检查端点
