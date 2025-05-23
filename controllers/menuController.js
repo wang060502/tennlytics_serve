@@ -214,26 +214,41 @@ async function deleteMenu(req, res) {
 async function getMenuList(req, res) {
     try {
         const { menuName, visible } = req.query;
-
-        let sql = 'SELECT * FROM sys_menu WHERE 1=1';
+        
+        let sql = `
+            WITH RECURSIVE menu_tree AS (
+                SELECT * FROM sys_menu 
+                WHERE 1=1
+                ${menuName ? 'AND menu_name LIKE ?' : ''}
+                ${visible !== undefined && visible !== '' ? 'AND visible = ?' : ''}
+                
+                UNION ALL
+                SELECT m.* FROM sys_menu m
+                INNER JOIN menu_tree mt ON m.menu_id = mt.parent_id
+            )
+            SELECT DISTINCT * FROM menu_tree
+            ORDER BY sort ASC
+        `;
+        
         const params = [];
-
         if (menuName) {
-            sql += ' AND menu_name LIKE ?';
-            params.push(`%${menuName}%`);
+            const trimmedName = menuName.trim();
+            if (trimmedName !== '') {
+                params.push(`%${trimmedName}%`);
+            }
         }
-        if (visible !== undefined) {
-            sql += ' AND visible = ?';
-            params.push(visible);
+        if (visible !== undefined && visible !== '') {
+            const visibleNum = Number(visible);
+            if (!isNaN(visibleNum)) {
+                params.push(visibleNum);
+            }
         }
-
-        sql += ' ORDER BY sort ASC';
-
         const menus = await query(sql, params);
 
         // 构建树形结构
         const buildTree = (items, parentId = 0) => {
             const result = [];
+            
             for (const item of items) {
                 if (item.parent_id === parentId) {
                     const children = buildTree(items, item.menu_id);
@@ -243,6 +258,7 @@ async function getMenuList(req, res) {
                     result.push(item);
                 }
             }
+            
             return result;
         };
 

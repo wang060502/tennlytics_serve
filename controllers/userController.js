@@ -1,4 +1,4 @@
-const { query } = require('../db/db');
+const { query, pool } = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -111,7 +111,21 @@ async function getProfile(req, res) {
         const userId = req.user.userId;
 
         const users = await query(
-            'SELECT user_id, username, real_name, avatar, email, mobile, dept_id, status, last_login_time, create_time FROM sys_user WHERE user_id = ?',
+            `SELECT 
+                u.user_id, 
+                u.username, 
+                u.real_name, 
+                u.avatar, 
+                u.email, 
+                u.mobile, 
+                u.dept_id, 
+                u.status, 
+                u.last_login_time, 
+                u.create_time,
+                d.dept_name
+            FROM sys_user u
+            LEFT JOIN sys_dept d ON u.dept_id = d.dept_id
+            WHERE u.user_id = ?`,
             [userId]
         );
         
@@ -159,60 +173,124 @@ async function updateProfile(req, res) {
 // 获取用户列表
 async function getUserList(req, res) {
     try {
-        const { page = 1, limit = 10, username, realName, mobile, status, deptId } = req.query;
-        const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        let sql = 'SELECT user_id, username, real_name, avatar, email, mobile, dept_id, status, last_login_time, create_time FROM sys_user WHERE 1=1';
+        const { page = 1, limit = 10, username, realName, mobile, status, deptId } = req.query;
+        // 确保 page 和 limit 是整数
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, parseInt(limit) || 10);
+        const offset = (pageNum - 1) * limitNum;
+
+        // 首先获取用户基本信息
+        let sql = `
+            SELECT 
+                u.user_id, 
+                u.username, 
+                u.real_name, 
+                u.avatar, 
+                u.email, 
+                u.mobile, 
+                u.dept_id, 
+                u.status, 
+                u.last_login_time, 
+                u.create_time,
+                d.dept_name
+            FROM sys_user u
+            LEFT JOIN sys_dept d ON u.dept_id = d.dept_id
+            WHERE 1=1`;
         const params = [];
 
         if (username) {
-            sql += ' AND username LIKE ?';
+            sql += ' AND u.username LIKE ?';
             params.push(`%${username}%`);
         }
         if (realName) {
-            sql += ' AND real_name LIKE ?';
+            sql += ' AND u.real_name LIKE ?';
             params.push(`%${realName}%`);
         }
         if (mobile) {
-            sql += ' AND mobile LIKE ?';
+            sql += ' AND u.mobile LIKE ?';
             params.push(`%${mobile}%`);
         }
         if (status !== undefined) {
-            sql += ' AND status = ?';
+            sql += ' AND u.status = ?';
             params.push(status);
         }
         if (deptId) {
-            sql += ' AND dept_id = ?';
+            sql += ' AND u.dept_id = ?';
             params.push(deptId);
         }
 
-        sql += ' LIMIT ? OFFSET ?';
-        params.push(parseInt(limit), offset);
+        // 直接使用数字而不是参数占位符
+        sql += ` LIMIT ${limitNum} OFFSET ${offset}`;
 
         const users = await query(sql, params);
-        const total = await query(
-            'SELECT COUNT(*) as count FROM sys_user WHERE 1=1' +
-            (username ? ' AND username LIKE ?' : '') +
-            (realName ? ' AND real_name LIKE ?' : '') +
-            (mobile ? ' AND mobile LIKE ?' : '') +
-            (status !== undefined ? ' AND status = ?' : '') +
-            (deptId ? ' AND dept_id = ?' : ''),
-            [
-                ...(username ? [`%${username}%`] : []),
-                ...(realName ? [`%${realName}%`] : []),
-                ...(mobile ? [`%${mobile}%`] : []),
-                ...(status !== undefined ? [status] : []),
-                ...(deptId ? [deptId] : [])
-            ]
-        );
+        
+        // 获取所有用户的角色信息
+        if (users.length > 0) {
+            const userIds = users.map(user => user.user_id);
+            
+            const rolesSql = `
+                SELECT 
+                    ur.user_id,
+                    r.role_id,
+                    r.role_code,
+                    r.role_name,
+                    r.data_scope,
+                    r.remark,
+                    r.create_time,
+                    r.update_time
+                FROM sys_user_role ur
+                INNER JOIN sys_role r ON ur.role_id = r.role_id
+                WHERE ur.user_id IN (${userIds.map(() => '?').join(',')})
+            `;
+            const userRoles = await query(rolesSql, userIds);
+
+            // 将角色信息添加到用户数据中
+            users.forEach(user => {
+                const userRolesList = userRoles.filter(role => role.user_id === user.user_id)
+                    .map(({ user_id, ...role }) => role); // 移除 user_id 字段
+                user.roles = userRolesList;
+            });
+        }
+        
+        // 计算总数的 SQL
+        let countSql = 'SELECT COUNT(*) as count FROM sys_user u WHERE 1=1';
+        const countParams = [];
+
+        if (username) {
+            countSql += ' AND u.username LIKE ?';
+            countParams.push(`%${username}%`);
+        }
+
+        if (realName) {
+            countSql += ' AND u.real_name LIKE ?';
+            countParams.push(`%${realName}%`);
+        }
+
+        if (mobile) {
+            countSql += ' AND u.mobile LIKE ?';
+            countParams.push(`%${mobile}%`);
+        }
+
+        if (status !== undefined) {
+            countSql += ' AND u.status = ?';
+            countParams.push(status);
+        }
+
+        if (deptId) {
+            countSql += ' AND u.dept_id = ?';
+            countParams.push(deptId);
+        }
+
+        const total = await query(countSql, countParams);
 
         res.json({
             code: 200,
             users,
             pagination: {
                 total: total[0].count,
-                page: parseInt(page),
-                limit: parseInt(limit)
+                page: pageNum,
+                limit: limitNum
             }
         });
     } catch (error) {
@@ -221,34 +299,253 @@ async function getUserList(req, res) {
     }
 }
 
-// 分配用户角色
+/**
+ * @swagger
+ * /api/roles/{roleId}/users:
+ *   post:
+ *     summary: 为角色批量分配用户
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 角色ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userIds
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: 用户ID列表
+ *     responses:
+ *       200:
+ *         description: 用户分配成功
+ *       400:
+ *         description: 参数错误
+ *       500:
+ *         description: 服务器错误
+ */
 async function assignUserRoles(req, res) {
     try {
-        const { userId } = req.params;
-        const { roleIds } = req.body;
+        const { roleId } = req.params;
+        const { userIds } = req.body;
 
-        // 开启事务
-        await query('START TRANSACTION');
+        // 验证参数
+        if (!Array.isArray(userIds)) {
+            return res.status(400).json({ code: 400, error: 'userIds 必须是数组' });
+        }
+
+        if (userIds.length === 0) {
+            return res.status(400).json({ code: 400, error: 'userIds 不能为空' });
+        }
+
+        // 检查角色是否存在
+        const role = await query('SELECT role_id FROM sys_role WHERE role_id = ?', [roleId]);
+        if (role.length === 0) {
+            return res.status(404).json({ code: 404, error: '角色不存在' });
+        }
+
+        // 获取数据库连接
+        const connection = await pool.getConnection();
 
         try {
-            // 删除原有角色
-            await query('DELETE FROM sys_user_role WHERE user_id = ?', [userId]);
+            // 开启事务
+            await connection.beginTransaction();
 
-            // 添加新角色
-            if (roleIds && roleIds.length > 0) {
-                const values = roleIds.map(roleId => [userId, roleId]);
-                await query('INSERT INTO sys_user_role (user_id, role_id) VALUES ?', [values]);
+            // 删除原有用户关联
+            await connection.query(
+                'DELETE FROM sys_user_role WHERE role_id = ? AND user_id IN (?)',
+                [roleId, userIds]
+            );
+
+            // 构建批量插入数据
+            const values = userIds.map(userId => [userId, roleId]);
+
+            // 批量插入新的用户关联
+            if (values.length > 0) {
+                await connection.query(
+                    'INSERT INTO sys_user_role (user_id, role_id) VALUES ?',
+                    [values]
+                );
             }
 
-            await query('COMMIT');
-            res.json({ code: 200, message: '用户角色分配成功' });
+            // 提交事务
+            await connection.commit();
+            res.json({ 
+                code: 200, 
+                message: '批量分配用户成功',
+                data: {
+                    roleId: parseInt(roleId),
+                    assignedUsers: userIds.length
+                }
+            });
         } catch (error) {
-            await query('ROLLBACK');
+            // 回滚事务
+            await connection.rollback();
             throw error;
+        } finally {
+            // 释放连接
+            connection.release();
         }
     } catch (error) {
-        console.error('分配用户角色失败:', error);
-        res.status(500).json({ code: 500, error: '分配用户角色失败' });
+        console.error('批量分配用户失败:', error);
+        res.status(500).json({ code: 500, error: '批量分配用户失败' });
+    }
+}
+
+/**
+ * @swagger
+ * /api/roles/unassigned-users:
+ *   get:
+ *     summary: 获取未绑定任何角色的用户列表
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: 页码
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: 每页数量
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         description: 用户名
+ *       - in: query
+ *         name: realName
+ *         schema:
+ *           type: string
+ *         description: 真实姓名
+ *     responses:
+ *       200:
+ *         description: 成功获取未绑定角色的用户列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: integer
+ *                       username:
+ *                         type: string
+ *                       realName:
+ *                         type: string
+ *                       avatar:
+ *                         type: string
+ *                       deptName:
+ *                         type: string
+ *                         description: 完整部门路径，如"一起发展贸易有限公司 / 技术部"
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ */
+async function getUnassignedUsers(req, res) {
+    try {
+        const { page = 1, limit = 10, username, realName } = req.query;
+
+        // 确保 page 和 limit 是整数
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, parseInt(limit) || 10);
+        const offset = (pageNum - 1) * limitNum;
+
+        // 构建查询条件
+        let conditions = ['u.user_id NOT IN (SELECT DISTINCT user_id FROM sys_user_role)'];
+        const params = [];
+
+        if (username) {
+            conditions.push('u.username LIKE ?');
+            params.push(`%${username}%`);
+        }
+        if (realName) {
+            conditions.push('u.real_name LIKE ?');
+            params.push(`%${realName}%`);
+        }
+
+        // 查询未分配任何角色的用户，包括部门层级信息
+        const sql = `
+            WITH RECURSIVE dept_tree AS (
+                SELECT 
+                    dept_id,
+                    parent_id,
+                    dept_name,
+                    CAST(dept_name AS CHAR(1000)) as dept_path
+                FROM sys_dept
+                WHERE parent_id = 0
+                
+                UNION ALL
+                SELECT 
+                    d.dept_id,
+                    d.parent_id,
+                    d.dept_name,
+                    CONCAT(dt.dept_path, '/', d.dept_name) as dept_path
+                FROM sys_dept d
+                INNER JOIN dept_tree dt ON d.parent_id = dt.dept_id
+            )
+            SELECT 
+                u.user_id,
+                u.username,
+                u.real_name,
+                u.avatar,
+                dt.dept_path as dept_name
+            FROM sys_user u
+            LEFT JOIN dept_tree dt ON u.dept_id = dt.dept_id
+            WHERE ${conditions.join(' AND ')}
+            LIMIT ${limitNum} OFFSET ${offset}
+        `;
+
+        const users = await query(sql, params);
+
+        // 查询总数
+        const countSql = `
+            SELECT COUNT(*) as total
+            FROM sys_user u
+            WHERE ${conditions.join(' AND ')}
+        `;
+        const total = await query(countSql, params);
+
+        res.json({
+            code: 200,
+            users,
+            pagination: {
+                total: total[0].total,
+                page: pageNum,
+                limit: limitNum
+            }
+        });
+    } catch (error) {
+        console.error('获取未绑定用户列表失败:', error);
+        res.status(500).json({ code: 500, error: '获取未绑定用户列表失败' });
     }
 }
 
@@ -302,6 +599,130 @@ async function resetPassword(req, res) {
     }
 }
 
+/**
+ * @swagger
+ * /api/users/{userId}:
+ *   put:
+ *     summary: 更新用户信息（管理员）
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 用户ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               realName:
+ *                 type: string
+ *                 description: 真实姓名
+ *               avatar:
+ *                 type: string
+ *                 description: 头像URL
+ *               email:
+ *                 type: string
+ *                 description: 邮箱
+ *               mobile:
+ *                 type: string
+ *                 description: 手机号
+ *               deptId:
+ *                 type: integer
+ *                 description: 部门ID
+ *               roleId:
+ *                 type: integer
+ *                 description: 角色ID（可选，传递则会覆盖用户所有角色，只能分配一个）
+ *     responses:
+ *       200:
+ *         description: 更新成功
+ *       404:
+ *         description: 用户不存在
+ */
+async function updateUser(req, res) {
+    try {
+        const { userId } = req.params;
+        const { realName, avatar, email, mobile, deptId, roleId } = req.body;
+
+        // 检查用户是否存在
+        const existingUser = await query('SELECT * FROM sys_user WHERE user_id = ?', [userId]);
+        if (existingUser.length === 0) {
+            return res.status(404).json({ code: 404, error: '用户不存在' });
+        }
+
+        // 构建更新字段和参数
+        const updateFields = [];
+        const params = [];
+
+        if (realName !== undefined) {
+            updateFields.push('real_name = ?');
+            params.push(realName);
+        }
+        if (avatar !== undefined) {
+            updateFields.push('avatar = ?');
+            params.push(avatar);
+        }
+        if (email !== undefined) {
+            updateFields.push('email = ?');
+            params.push(email);
+        }
+        if (mobile !== undefined) {
+            updateFields.push('mobile = ?');
+            params.push(mobile);
+        }
+        if (deptId !== undefined) {
+            updateFields.push('dept_id = ?');
+            params.push(deptId);
+        }
+
+        // 如果没有要更新的字段且没有角色更新
+        if (updateFields.length === 0 && roleId === undefined) {
+            return res.status(400).json({ code: 400, error: '没有提供要更新的字段' });
+        }
+
+        // 获取数据库连接
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // 更新用户基本信息
+            if (updateFields.length > 0) {
+                updateFields.push('update_time = NOW()');
+                params.push(userId);
+                await connection.query(
+                    `UPDATE sys_user SET ${updateFields.join(', ')} WHERE user_id = ?`,
+                    params
+                );
+            }
+
+            // 更新用户角色
+            if (roleId !== undefined) {
+                // 删除原有角色
+                await connection.query('DELETE FROM sys_user_role WHERE user_id = ?', [userId]);
+                // 插入新角色
+                await connection.query('INSERT INTO sys_user_role (user_id, role_id) VALUES (?, ?)', [userId, roleId]);
+            }
+
+            await connection.commit();
+            res.json({ code: 200, message: '用户信息更新成功' });
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('更新用户信息失败:', error);
+        res.status(500).json({ code: 500, error: '更新用户信息失败' });
+    }
+}
+
 module.exports = {
     register,
     login,
@@ -309,6 +730,8 @@ module.exports = {
     updateProfile,
     getUserList,
     assignUserRoles,
+    getUnassignedUsers,
     updateUserStatus,
-    resetPassword
+    resetPassword,
+    updateUser
 }; 

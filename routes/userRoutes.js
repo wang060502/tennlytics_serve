@@ -7,9 +7,9 @@ const {
     getProfile,
     updateProfile,
     getUserList,
-    assignUserRoles,
     updateUserStatus,
-    resetPassword
+    resetPassword,
+    updateUser
 } = require('../controllers/userController');
 
 /**
@@ -329,46 +329,6 @@ router.get('/', verifyToken, checkPermission('user:list'), getUserList);
 
 /**
  * @swagger
- * /api/users/{userId}/roles:
- *   post:
- *     tags:
- *       - Users
- *     summary: 分配用户角色
- *     description: 为用户分配角色
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         description: 用户ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - roleIds
- *             properties:
- *               roleIds:
- *                 type: array
- *                 items:
- *                   type: integer
- *                 description: 角色ID列表
- *     responses:
- *       200:
- *         description: 角色分配成功
- *       401:
- *         description: 未授权
- */
-// 分配用户角色
-router.post('/:userId/roles', verifyToken, checkPermission('user:assign'), assignUserRoles);
-
-/**
- * @swagger
  * /api/users/{userId}/status:
  *   put:
  *     tags:
@@ -442,5 +402,54 @@ router.put('/:userId/status', verifyToken, checkPermission('user:edit'), updateU
  */
 // 重置用户密码
 router.put('/:userId/password', verifyToken, checkPermission('user:edit'), resetPassword);
+
+/**
+ * @swagger
+ * /api/users/{userId}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: 更新用户信息（管理员）
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 用户ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               realName:
+ *                 type: string
+ *                 description: 真实姓名
+ *               avatar:
+ *                 type: string
+ *                 description: 头像URL
+ *               email:
+ *                 type: string
+ *                 description: 邮箱
+ *               mobile:
+ *                 type: string
+ *                 description: 手机号
+ *               deptId:
+ *                 type: integer
+ *                 description: 部门ID
+ *               roleId:
+ *                 type: integer
+ *                 description: 角色ID（可选，传递则会覆盖用户所有角色，只能分配一个）
+ *     responses:
+ *       200:
+ *         description: 更新成功
+ *       404:
+ *         description: 用户不存在
+ */
+router.put('/:userId', verifyToken, checkPermission('user:edit'), updateUser);
 
 module.exports = router; 

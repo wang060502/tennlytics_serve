@@ -168,11 +168,24 @@ async function deleteRole(req, res) {
  *         schema:
  *           type: string
  *         description: 角色名称
+ *       - in: query
+ *         name: roleCode
+ *         schema:
+ *           type: string
+ *         description: 角色编码
+ *       - in: query
+ *         name: dataScope
+ *         schema:
+ *           type: integer
+ *         description: 数据权限(1-本人 2-部门 3-全部)
  */
 async function getRoleList(req, res) {
     try {
-        const { page = 1, limit = 10, roleName } = req.query;
-        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const { page = 1, limit = 10, roleName, roleCode, dataScope } = req.query;
+        // 确保 page 和 limit 是整数
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, parseInt(limit) || 10);
+        const offset = (pageNum - 1) * limitNum;
 
         let sql = 'SELECT * FROM sys_role WHERE 1=1';
         const params = [];
@@ -182,19 +195,49 @@ async function getRoleList(req, res) {
             params.push(`%${roleName}%`);
         }
 
-        sql += ' LIMIT ? OFFSET ?';
-        params.push(parseInt(limit), offset);
+        if (roleCode) {
+            sql += ' AND role_code LIKE ?';
+            params.push(`%${roleCode}%`);
+        }
+
+        if (dataScope !== undefined && dataScope !== '') {
+            sql += ' AND data_scope = ?';
+            params.push(parseInt(dataScope));
+        }
+
+        // 直接使用数字而不是参数占位符
+        sql += ` LIMIT ${limitNum} OFFSET ${offset}`;
 
         const roles = await query(sql, params);
-        const total = await query('SELECT COUNT(*) as count FROM sys_role WHERE 1=1' + (roleName ? ' AND role_name LIKE ?' : ''), roleName ? [`%${roleName}%`] : []);
+        
+        // 计算总数的 SQL 也需要修改
+        let countSql = 'SELECT COUNT(*) as count FROM sys_role WHERE 1=1';
+        const countParams = [];
+
+        if (roleName) {
+            countSql += ' AND role_name LIKE ?';
+            countParams.push(`%${roleName}%`);
+        }
+
+        if (roleCode) {
+            countSql += ' AND role_code LIKE ?';
+            countParams.push(`%${roleCode}%`);
+        }
+
+        if (dataScope !== undefined && dataScope !== '') {
+            countSql += ' AND data_scope = ?';
+            countParams.push(parseInt(dataScope));
+        }
+
+        const total = await query(countSql, countParams);
 
         res.json({
             code: 200,
             roles,
             pagination: {
                 total: total[0].count,
-                page: parseInt(page),
-                limit: parseInt(limit)
+                page: pageNum,
+                limit: limitNum
             }
         });
     } catch (error) {
@@ -234,28 +277,141 @@ async function assignRoleMenus(req, res) {
         const { roleId } = req.params;
         const { menuIds } = req.body;
 
-        // 开启事务
-        await query('START TRANSACTION');
+        // 获取连接池
+        const pool = require('../db/db').pool;
 
+        // 获取连接
+        const connection = await pool.getConnection();
+        
         try {
+            // 开启事务
+            await connection.beginTransaction();
+
             // 删除原有权限
-            await query('DELETE FROM sys_role_menu WHERE role_id = ?', [roleId]);
+            await connection.query('DELETE FROM sys_role_menu WHERE role_id = ?', [roleId]);
 
             // 添加新权限
             if (menuIds && menuIds.length > 0) {
                 const values = menuIds.map(menuId => [roleId, menuId]);
-                await query('INSERT INTO sys_role_menu (role_id, menu_id) VALUES ?', [values]);
+                await connection.query('INSERT INTO sys_role_menu (role_id, menu_id) VALUES ?', [values]);
             }
 
-            await query('COMMIT');
+            // 提交事务
+            await connection.commit();
             res.json({ code: 200, message: '角色菜单权限分配成功' });
         } catch (error) {
-            await query('ROLLBACK');
+            // 回滚事务
+            await connection.rollback();
             throw error;
+        } finally {
+            // 释放连接
+            connection.release();
         }
     } catch (error) {
         console.error('分配角色菜单权限失败:', error);
         res.status(500).json({ code: 500, error: '分配角色菜单权限失败' });
+    }
+}
+
+/**
+ * @swagger
+ * /api/roles/{roleId}/menus:
+ *   get:
+ *     summary: 获取角色已绑定的菜单列表
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 角色ID
+ *     responses:
+ *       200:
+ *         description: 成功获取角色菜单列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 menus:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       menuId:
+ *                         type: integer
+ *                         description: 菜单ID
+ *                       menuName:
+ *                         type: string
+ *                         description: 菜单名称
+ *                       parentId:
+ *                         type: integer
+ *                         description: 父菜单ID
+ *                       menuType:
+ *                         type: integer
+ *                         description: 菜单类型(1-目录 2-菜单 3-按钮)
+ *                       path:
+ *                         type: string
+ *                         description: 路由路径
+ *                       component:
+ *                         type: string
+ *                         description: 前端组件
+ *                       perms:
+ *                         type: string
+ *                         description: 权限标识
+ *                       icon:
+ *                         type: string
+ *                         description: 图标
+ *                       sort:
+ *                         type: integer
+ *                         description: 排序
+ *                       visible:
+ *                         type: integer
+ *                         description: 是否可见(0-隐藏 1-显示)
+ */
+async function getRoleMenus(req, res) {
+    try {
+        const { roleId } = req.params;
+
+        // 查询角色已绑定的菜单
+        const menus = await query(
+            `SELECT m.* FROM sys_menu m
+             INNER JOIN sys_role_menu rm ON m.menu_id = rm.menu_id
+             WHERE rm.role_id = ?
+             ORDER BY m.sort ASC`,
+            [roleId]
+        );
+
+        // 构建树形结构
+        const buildTree = (items, parentId = 0) => {
+            const result = [];
+            for (const item of items) {
+                if (item.parent_id === parentId) {
+                    const children = buildTree(items, item.menu_id);
+                    if (children.length) {
+                        item.children = children;
+                    }
+                    result.push(item);
+                }
+            }
+            return result;
+        };
+
+        const menuTree = buildTree(menus);
+
+        res.json({
+            code: 200,
+            menus: menuTree
+        });
+    } catch (error) {
+        console.error('获取角色菜单列表失败:', error);
+        res.status(500).json({ code: 500, error: '获取角色菜单列表失败' });
     }
 }
 
@@ -264,5 +420,6 @@ module.exports = {
     updateRole,
     deleteRole,
     getRoleList,
-    assignRoleMenus
+    assignRoleMenus,
+    getRoleMenus
 }; 
