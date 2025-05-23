@@ -55,6 +55,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// 初始化定时任务
+require('./tasks/cleanupLogs');
+
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
