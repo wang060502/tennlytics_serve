@@ -1,4 +1,5 @@
 const { query } = require('../db/db');
+const { logOperation } = require('./operationLogController');
 
 /**
  * @swagger
@@ -51,6 +52,14 @@ async function createRole(req, res) {
         );
 
         res.status(201).json({ code: 200, message: '角色创建成功', roleId: result.insertId });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'createRole',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('创建角色失败:', error);
         res.status(500).json({ code: 500, error: '创建角色失败' });
@@ -100,6 +109,14 @@ async function updateRole(req, res) {
         }
 
         res.json({ code: 200, message: '角色更新成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'updateRole',
+            method: req.method,
+            params: JSON.stringify({ roleId, ...req.body }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('更新角色失败:', error);
         res.status(500).json({ code: 500, error: '更新角色失败' });
@@ -138,6 +155,14 @@ async function deleteRole(req, res) {
         }
 
         res.json({ code: 200, message: '角色删除成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'deleteRole',
+            method: req.method,
+            params: JSON.stringify({ roleId }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('删除角色失败:', error);
         res.status(500).json({ code: 500, error: '删除角色失败' });
@@ -299,6 +324,14 @@ async function assignRoleMenus(req, res) {
             // 提交事务
             await connection.commit();
             res.json({ code: 200, message: '角色菜单权限分配成功' });
+            // 记录操作日志
+            await logOperation({
+                req,
+                operation: 'assignRoleMenus',
+                method: req.method,
+                params: JSON.stringify({ roleId, menuIds }),
+                ip: req.ip
+            });
         } catch (error) {
             // 回滚事务
             await connection.rollback();

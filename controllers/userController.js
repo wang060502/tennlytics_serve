@@ -1,6 +1,7 @@
 const { query, pool } = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { logOperation } = require('./operationLogController');
 
 // 用户注册
 async function register(req, res) {
@@ -40,6 +41,14 @@ async function register(req, res) {
         );
 
         res.status(201).json({ code: 200, message: '注册成功', userId: result.insertId });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'register',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('注册失败:', error);
         res.status(500).json({ code: 500, error: '注册失败' });
@@ -98,6 +107,14 @@ async function login(req, res) {
                 mobile: user.mobile,
                 deptId: user.dept_id
             }
+        });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'login',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
         });
     } catch (error) {
         console.error('登录失败:', error);
@@ -164,6 +181,14 @@ async function updateProfile(req, res) {
         }
 
         res.json({ code: 200, message: '更新成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'updateProfile',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('更新用户信息失败:', error);
         res.status(500).json({ code: 500, error: '更新用户信息失败' });
@@ -565,6 +590,14 @@ async function updateUserStatus(req, res) {
         }
 
         res.json({ code: 200, message: '状态更新成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'updateUserStatus',
+            method: req.method,
+            params: JSON.stringify({ userId, status }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('更新用户状态失败:', error);
         res.status(500).json({ code: 500, error: '更新用户状态失败' });
@@ -593,6 +626,14 @@ async function resetPassword(req, res) {
         }
 
         res.json({ code: 200, message: '密码重置成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'resetPassword',
+            method: req.method,
+            params: JSON.stringify({ userId }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('重置密码失败:', error);
         res.status(500).json({ code: 500, error: '重置密码失败' });
@@ -711,6 +752,14 @@ async function updateUser(req, res) {
 
             await connection.commit();
             res.json({ code: 200, message: '用户信息更新成功' });
+            // 记录操作日志
+            await logOperation({
+                req,
+                operation: 'updateUser',
+                method: req.method,
+                params: JSON.stringify({ userId, ...req.body }),
+                ip: req.ip
+            });
         } catch (error) {
             await connection.rollback();
             throw error;

@@ -1,4 +1,5 @@
 const { query } = require('../db/db');
+const { logOperation } = require('./operationLogController');
 
 /**
  * 创建部门
@@ -14,6 +15,14 @@ async function createDept(req, res) {
             [parentId, deptName, orderNum, status]
         );
         res.status(201).json({ code: 200, message: '部门创建成功', deptId: result.insertId });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'createDept',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('创建部门失败:', error);
         res.status(500).json({ code: 500, error: '创建部门失败' });
@@ -35,6 +44,14 @@ async function updateDept(req, res) {
             return res.status(404).json({ code: 404, error: '部门不存在' });
         }
         res.json({ code: 200, message: '部门更新成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'updateDept',
+            method: req.method,
+            params: JSON.stringify({ deptId, ...req.body }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('更新部门失败:', error);
         res.status(500).json({ code: 500, error: '更新部门失败' });
@@ -62,6 +79,14 @@ async function deleteDept(req, res) {
             return res.status(404).json({ code: 404, error: '部门不存在' });
         }
         res.json({ code: 200, message: '部门删除成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'deleteDept',
+            method: req.method,
+            params: JSON.stringify({ deptId }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('删除部门失败:', error);
         res.status(500).json({ code: 500, error: '删除部门失败' });

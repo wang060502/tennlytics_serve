@@ -1,4 +1,5 @@
 const { query } = require('../db/db');
+const { logOperation } = require('./operationLogController');
 
 /**
  * @swagger
@@ -70,6 +71,14 @@ async function createMenu(req, res) {
         );
 
         res.status(201).json({ code: 200, message: '菜单创建成功', menuId: result.insertId });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'createMenu',
+            method: req.method,
+            params: JSON.stringify(req.body),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('创建菜单失败:', error);
         res.status(500).json({ code: 500, error: '创建菜单失败' });
@@ -141,6 +150,14 @@ async function updateMenu(req, res) {
         }
 
         res.json({ code: 200, message: '菜单更新成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'updateMenu',
+            method: req.method,
+            params: JSON.stringify({ menuId, ...req.body }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('更新菜单失败:', error);
         res.status(500).json({ code: 500, error: '更新菜单失败' });
@@ -185,6 +202,14 @@ async function deleteMenu(req, res) {
         }
 
         res.json({ code: 200, message: '菜单删除成功' });
+        // 记录操作日志
+        await logOperation({
+            req,
+            operation: 'deleteMenu',
+            method: req.method,
+            params: JSON.stringify({ menuId }),
+            ip: req.ip
+        });
     } catch (error) {
         console.error('删除菜单失败:', error);
         res.status(500).json({ code: 500, error: '删除菜单失败' });
