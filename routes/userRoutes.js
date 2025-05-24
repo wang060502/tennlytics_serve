@@ -54,6 +54,9 @@ const {
  *               status:
  *                 type: integer
  *                 description: 状态(0-禁用 1-启用)
+ *               remark:
+ *                 type: string
+ *                 description: 备注（可选）
  *     responses:
  *       201:
  *         description: 注册成功
@@ -219,6 +222,9 @@ router.get('/profile', verifyToken, getProfile);
  *               deptId:
  *                 type: integer
  *                 description: 部门ID
+ *               remark:
+ *                 type: string
+ *                 description: 备注（可选）
  *     responses:
  *       200:
  *         description: 更新成功
@@ -444,6 +450,9 @@ router.put('/:userId/password', verifyToken, checkPermission('user:edit'), reset
  *               roleId:
  *                 type: integer
  *                 description: 角色ID（可选，传递则会覆盖用户所有角色，只能分配一个）
+ *               remark:
+ *                 type: string
+ *                 description: 备注（可选）
  *     responses:
  *       200:
  *         description: 更新成功

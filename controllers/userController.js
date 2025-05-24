@@ -6,7 +6,7 @@ const { logOperation } = require('./operationLogController');
 // 用户注册
 async function register(req, res) {
     try {
-        const { username, password, realName, avatar, email, mobile, deptId, status = 1 } = req.body;
+        const { username, password, realName, avatar, email, mobile, deptId, status = 1, remark } = req.body;
 
         // 检查必填字段
         if (!username || !password) {
@@ -31,12 +31,13 @@ async function register(req, res) {
             email || null,
             mobile || null,
             deptId || null,
-            status
+            status,
+            remark || null
         ];
 
         // 插入新用户
         const result = await query(
-            'INSERT INTO sys_user (username, password, real_name, avatar, email, mobile, dept_id, status, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            'INSERT INTO sys_user (username, password, real_name, avatar, email, mobile, dept_id, status, remark, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
             params
         );
 
@@ -198,7 +199,6 @@ async function updateProfile(req, res) {
 // 获取用户列表
 async function getUserList(req, res) {
     try {
-
         const { page = 1, limit = 10, username, realName, mobile, status, deptId } = req.query;
         // 确保 page 和 limit 是整数
         const pageNum = Math.max(1, parseInt(page) || 1);
@@ -218,6 +218,7 @@ async function getUserList(req, res) {
                 u.status, 
                 u.last_login_time, 
                 u.create_time,
+                u.remark,
                 d.dept_name
             FROM sys_user u
             LEFT JOIN sys_dept d ON u.dept_id = d.dept_id
@@ -680,6 +681,9 @@ async function resetPassword(req, res) {
  *               roleId:
  *                 type: integer
  *                 description: 角色ID（可选，传递则会覆盖用户所有角色，只能分配一个）
+ *               remark:
+ *                 type: string
+ *                 description: 备注（可选）
  *     responses:
  *       200:
  *         description: 更新成功
@@ -689,7 +693,7 @@ async function resetPassword(req, res) {
 async function updateUser(req, res) {
     try {
         const { userId } = req.params;
-        const { realName, avatar, email, mobile, deptId, roleId } = req.body;
+        const { realName, avatar, email, mobile, deptId, roleId, remark } = req.body;
 
         // 检查用户是否存在
         const existingUser = await query('SELECT * FROM sys_user WHERE user_id = ?', [userId]);
@@ -720,6 +724,10 @@ async function updateUser(req, res) {
         if (deptId !== undefined) {
             updateFields.push('dept_id = ?');
             params.push(deptId);
+        }
+        if (remark !== undefined) {
+            updateFields.push('remark = ?');
+            params.push(remark);
         }
 
         // 如果没有要更新的字段且没有角色更新

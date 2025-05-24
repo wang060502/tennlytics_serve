@@ -106,6 +106,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     
     res.json({
+      code: 200,
       message: '文件上传成功',
       file: {
         filename: req.file.filename,

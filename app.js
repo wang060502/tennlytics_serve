@@ -11,6 +11,10 @@ const swaggerSpecs = require('./config/swagger');
 const path = require('path');
 const app = express();
 const port = 3000;
+const productRoutes = require('./routes/productRoutes');
+const customerRoutes = require('./routes/customerRoutes');
+const salesRecordRoutes = require('./routes/salesRecordRoutes');
+const productCategoryRoutes = require('./routes/productCategoryRoutes');
 
 // 测试数据库连接
 testConnection();
@@ -38,6 +42,10 @@ app.use('/api/menus', menuRoutes);
 app.use('/api/files', uploadRoutes);
 app.use('/api/depts', deptRoutes);
 app.use('/api/operation-logs', operationLogRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/sales-records', salesRecordRoutes);
+app.use('/api/product-categories', productCategoryRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {

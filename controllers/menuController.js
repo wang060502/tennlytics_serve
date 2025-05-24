@@ -142,7 +142,18 @@ async function updateMenu(req, res) {
 
         const result = await query(
             'UPDATE sys_menu SET parent_id = ?, menu_name = ?, menu_type = ?, path = ?, component = ?, perms = ?, icon = ?, sort = ?, visible = ?, update_time = NOW() WHERE menu_id = ?',
-            [parentId, menuName, menuType, path, component, perms, icon, sort, visible, menuId]
+            [
+                parentId !== undefined ? parentId : null,
+                menuName !== undefined ? menuName : null,
+                menuType !== undefined ? menuType : null,
+                path !== undefined ? path : null,
+                component !== undefined ? component : null,
+                perms !== undefined ? perms : null,
+                icon !== undefined ? icon : null,
+                sort !== undefined ? sort : null,
+                visible !== undefined ? visible : null,
+                menuId
+            ]
         );
 
         if (result.affectedRows === 0) {
@@ -182,20 +193,48 @@ async function updateMenu(req, res) {
 async function deleteMenu(req, res) {
     try {
         const { menuId } = req.params;
+        
+        // 验证 menuId 参数
+        if (!menuId || isNaN(parseInt(menuId))) {
+            return res.status(400).json({ 
+                code: 400, 
+                error: '无效的菜单ID' 
+            });
+        }
 
         // 检查是否有子菜单
-        const childMenus = await query('SELECT * FROM sys_menu WHERE parent_id = ?', [menuId]);
+        const childMenus = await query('SELECT * FROM sys_menu WHERE parent_id = ?', [parseInt(menuId)]);
+        console.log('检查子菜单:', {
+            menuId: parseInt(menuId),
+            childMenusCount: childMenus.length,
+            childMenus: childMenus
+        });
+        
         if (childMenus.length > 0) {
-            return res.status(400).json({ code: 400, error: '存在子菜单，无法删除' });
+            return res.status(400).json({ 
+                code: 400, 
+                error: '存在子菜单，无法删除',
+                childMenus: childMenus 
+            });
         }
 
         // 检查是否有角色关联此菜单
-        const roleMenus = await query('SELECT * FROM sys_role_menu WHERE menu_id = ?', [menuId]);
+        const roleMenus = await query('SELECT * FROM sys_role_menu WHERE menu_id = ?', [parseInt(menuId)]);
+        console.log('检查角色关联:', {
+            menuId: parseInt(menuId),
+            roleMenusCount: roleMenus.length,
+            roleMenus: roleMenus
+        });
+        
         if (roleMenus.length > 0) {
-            return res.status(400).json({ code: 400, error: '菜单已被角色使用，无法删除' });
+            return res.status(400).json({ 
+                code: 400, 
+                error: '菜单已被角色使用，无法删除',
+                roleMenus: roleMenus 
+            });
         }
 
-        const result = await query('DELETE FROM sys_menu WHERE menu_id = ?', [menuId]);
+        const result = await query('DELETE FROM sys_menu WHERE menu_id = ?', [parseInt(menuId)]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ code: 404, error: '菜单不存在' });
@@ -207,7 +246,7 @@ async function deleteMenu(req, res) {
             req,
             operation: 'deleteMenu',
             method: req.method,
-            params: JSON.stringify({ menuId }),
+            params: JSON.stringify({ menuId: parseInt(menuId) }),
             ip: req.ip
         });
     } catch (error) {
