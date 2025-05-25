@@ -11,7 +11,7 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 24/05/2025 19:00:45
+ Date: 25/05/2025 22:05:54
 */
 
 SET NAMES utf8mb4;
@@ -42,7 +42,7 @@ CREATE TABLE `customer`  (
 -- Records of customer
 -- ----------------------------
 INSERT INTO `customer` VALUES (4, '刘易', '成交客户', '一般客户', '已结清', '小红书', '广东省东莞市长安镇建安路689号冠城电子信息产业园B栋三楼B2区101仓', '无', 0.00, 1, 1, '2025-05-24 14:17:56', '2025-05-24 14:34:16');
-INSERT INTO `customer` VALUES (5, '陈茉函', '成交客户', '重要客户', '已结清', '小红书', '无', '无', 0.00, 1, 1, '2025-05-24 14:52:45', NULL);
+INSERT INTO `customer` VALUES (5, '陈茉函', '成交客户', '重要客户', '已结清', '小红书', '无', '无', 15.00, 1, 1, '2025-05-24 14:52:45', '2025-05-25 00:28:19');
 
 -- ----------------------------
 -- Table structure for product
@@ -63,12 +63,16 @@ CREATE TABLE `product`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`product_id`) USING BTREE,
   UNIQUE INDEX `product_sku`(`product_sku` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of product
 -- ----------------------------
 INSERT INTO `product` VALUES (3, ' FW23', '卫裤', 3, ' 401 080 30 NAVY', ' 401 080 30 NAVY623764', 'http://localhost:3000/uploads/1748083619400-461924650.jpeg', '无', '无', 1, '2025-05-24 18:47:03', NULL);
+INSERT INTO `product` VALUES (6, 'FW23', '卫裤', 3, '401 080 30 NAVY', '401 080 30 NAVY017561', 'http://localhost:3000/uploads/1748096015753-821994441.jpeg', 'Navy/藏青色', '无', 1, '2025-05-24 22:13:37', NULL);
+INSERT INTO `product` VALUES (7, 'NBA#FW24', '短袖', 4, '125AL244000F', '125AL244000F073234', 'http://localhost:3000/uploads/1748096061678-354408401.png', '浅灰色（LIGHT HEATHER）', '无', 1, '2025-05-24 22:14:33', '2025-05-24 22:16:24');
+INSERT INTO `product` VALUES (8, '10-2#SS24', '卫衣', 1, '202SP244311F', '202SP244311F169057', 'http://localhost:3000/uploads/1748096156652-648412964.png', '春园黄（DARK HEATHER OATMEAL/GARDEN YELLOW）', '无', 1, '2025-05-24 22:16:09', NULL);
+INSERT INTO `product` VALUES (9, 'NBA#FW24', '短裤', 5, '160AL244000F', '160AL244000F261466', 'http://localhost:3000/uploads/1748096250985-822531364.png', '浅灰色（LIGHT HEATHER）', '无', 1, '2025-05-24 22:17:41', NULL);
 
 -- ----------------------------
 -- Table structure for product_category
@@ -82,13 +86,15 @@ CREATE TABLE `product_category`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`category_id`) USING BTREE,
   UNIQUE INDEX `uk_category_name`(`category_name` ASC) USING BTREE COMMENT '分类名称唯一索引'
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品分类表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品分类表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of product_category
 -- ----------------------------
 INSERT INTO `product_category` VALUES (1, '卫衣', 1, '2025-05-24 16:17:30', '2025-05-24 16:19:25');
 INSERT INTO `product_category` VALUES (3, '卫裤', 1, '2025-05-24 16:17:59', NULL);
+INSERT INTO `product_category` VALUES (4, '短袖', 1, '2025-05-24 22:15:03', NULL);
+INSERT INTO `product_category` VALUES (5, '短裤', 1, '2025-05-24 22:17:04', NULL);
 
 -- ----------------------------
 -- Table structure for product_sales_record
@@ -102,6 +108,7 @@ CREATE TABLE `product_sales_record`  (
   `quantity` int NOT NULL COMMENT '销售件数',
   `unit_price` decimal(10, 2) NOT NULL COMMENT '销售单价',
   `total_price` decimal(10, 2) NOT NULL COMMENT '销售总价',
+  `remark` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT '备注',
   `sales_time` datetime NOT NULL COMMENT '销售时间',
   `creator` bigint NOT NULL COMMENT '创建者',
   `create_time` datetime NOT NULL COMMENT '创建时间',
@@ -111,11 +118,48 @@ CREATE TABLE `product_sales_record`  (
   INDEX `fk_product_id`(`product_id` ASC) USING BTREE,
   CONSTRAINT `fk_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_product_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品销售记录表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '产品销售记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of product_sales_record
 -- ----------------------------
+INSERT INTO `product_sales_record` VALUES (4, 4, 9, '160AL244000F', 10, 9.00, 90.00, NULL, '2025-05-24 14:57:10', 1, '2025-05-24 22:57:13', NULL);
+INSERT INTO `product_sales_record` VALUES (5, 4, 7, '125AL244000F', 5, 7.50, 37.50, NULL, '2025-05-24 14:57:10', 1, '2025-05-24 22:57:13', NULL);
+INSERT INTO `product_sales_record` VALUES (6, 4, 7, '125AL244000F', 2, 13.50, 27.00, NULL, '2025-05-25 01:00:00', 1, '2025-05-24 22:58:20', NULL);
+INSERT INTO `product_sales_record` VALUES (7, 4, 6, '401 080 30 NAVY', 3, 5.80, 17.40, NULL, '2025-05-25 01:00:00', 1, '2025-05-24 22:58:20', NULL);
+INSERT INTO `product_sales_record` VALUES (8, 4, 8, '202SP244311F', 1, 15.50, 15.50, NULL, '2025-05-25 01:00:00', 1, '2025-05-24 22:58:20', NULL);
+INSERT INTO `product_sales_record` VALUES (9, 5, 9, '160AL244000F', 7, 9.90, 69.30, NULL, '2025-05-24 15:14:21', 1, '2025-05-24 23:14:23', NULL);
+INSERT INTO `product_sales_record` VALUES (10, 5, 8, '202SP244311F', 1, 12.00, 12.00, '客户需要的样品', '2025-05-24 15:14:21', 1, '2025-05-24 23:14:23', NULL);
+INSERT INTO `product_sales_record` VALUES (11, 5, 8, '202SP244311F', 1, 15.00, 15.00, '样品', '2025-05-24 15:30:18', 1, '2025-05-24 23:31:23', NULL);
+
+-- ----------------------------
+-- Table structure for product_warehouse
+-- ----------------------------
+DROP TABLE IF EXISTS `product_warehouse`;
+CREATE TABLE `product_warehouse`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '关联ID',
+  `product_id` bigint NOT NULL COMMENT '产品ID',
+  `product_size` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品尺码',
+  `stock_quantity` int NULL DEFAULT 0 COMMENT '产品库存数量',
+  `warehouse_id` bigint NOT NULL COMMENT '仓库ID',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `fk_product`(`product_id` ASC) USING BTREE,
+  INDEX `fk_warehouse`(`warehouse_id` ASC) USING BTREE,
+  CONSTRAINT `fk_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouse` (`warehouse_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '产品仓库关联表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of product_warehouse
+-- ----------------------------
+INSERT INTO `product_warehouse` VALUES (1, 8, 's', 2, 2);
+INSERT INTO `product_warehouse` VALUES (2, 8, 'xl', 5, 1);
+INSERT INTO `product_warehouse` VALUES (4, 3, 'xl', 2, 2);
+INSERT INTO `product_warehouse` VALUES (5, 6, 'xs', 15, 2);
+INSERT INTO `product_warehouse` VALUES (6, 6, 'xxxl', 38, 1);
+INSERT INTO `product_warehouse` VALUES (12, 8, 'M', 4, 1);
+INSERT INTO `product_warehouse` VALUES (13, 8, 'L', 5, 2);
+INSERT INTO `product_warehouse` VALUES (14, 8, 'XXL', 4, 1);
 
 -- ----------------------------
 -- Table structure for sys_dept
@@ -158,7 +202,7 @@ CREATE TABLE `sys_menu`  (
   `create_time` datetime NOT NULL,
   `update_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 42 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 52 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -203,6 +247,16 @@ INSERT INTO `sys_menu` VALUES (38, 33, '商品列表', 2, '/product/list', '', '
 INSERT INTO `sys_menu` VALUES (39, 38, '新增商品', 3, '', '', 'productCategory:add', '', 1, 0, '2025-05-24 16:38:27', NULL);
 INSERT INTO `sys_menu` VALUES (40, 38, '修改商品', 3, '', '', 'productCategory:edit', '', 2, 0, '2025-05-24 16:38:51', NULL);
 INSERT INTO `sys_menu` VALUES (41, 38, '删除商品', 1, '', '', 'productCategory:delete', '', 3, 0, '2025-05-24 16:39:11', NULL);
+INSERT INTO `sys_menu` VALUES (42, 0, '仓库管理', 1, '/warehouse', '', '', 'House', 20, 1, '2025-05-25 16:24:16', NULL);
+INSERT INTO `sys_menu` VALUES (43, 42, '仓库列表', 2, '/warehouse/list', '', 'warehouse:list', '', 1, 1, '2025-05-25 16:25:45', '2025-05-25 16:25:58');
+INSERT INTO `sys_menu` VALUES (44, 43, '新增仓库', 3, '', '', 'warehouse:add', '', 2, 0, '2025-05-25 16:26:25', NULL);
+INSERT INTO `sys_menu` VALUES (45, 43, '更新仓库', 3, '', '', 'warehouse:edit', '', 3, 0, '2025-05-25 16:26:55', '2025-05-25 16:27:01');
+INSERT INTO `sys_menu` VALUES (46, 43, '删除仓库', 3, '', '', 'warehouse:delete', '', 4, 0, '2025-05-25 16:27:21', NULL);
+INSERT INTO `sys_menu` VALUES (47, 42, '库存管理', 2, '/warehouse/inventory', '', '', '', 2, 1, '2025-05-25 18:38:41', '2025-05-25 18:38:51');
+INSERT INTO `sys_menu` VALUES (48, 47, '库存列表', 3, '', '', 'inventory:list', '', 1, 0, '2025-05-25 18:39:33', NULL);
+INSERT INTO `sys_menu` VALUES (49, 47, '新增库存', 3, '', '', 'inventory:add', '', 2, 0, '2025-05-25 18:40:19', NULL);
+INSERT INTO `sys_menu` VALUES (50, 47, '更新库存', 3, '', '', 'inventory:update', '', 3, 0, '2025-05-25 18:40:43', NULL);
+INSERT INTO `sys_menu` VALUES (51, 47, '删除库存', 3, '', '', 'inventory:delete', '', 4, 0, '2025-05-25 18:41:02', NULL);
 
 -- ----------------------------
 -- Table structure for sys_operation_log
@@ -217,7 +271,7 @@ CREATE TABLE `sys_operation_log`  (
   `ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'IP地址',
   `create_time` datetime NOT NULL,
   PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 46 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 61 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '操作日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_operation_log
@@ -267,6 +321,21 @@ INSERT INTO `sys_operation_log` VALUES (42, 1, 'createMenu', 'POST', '{\"parentI
 INSERT INTO `sys_operation_log` VALUES (43, 1, 'createMenu', 'POST', '{\"parentId\":38,\"menuName\":\"删除商品\",\"menuType\":1,\"path\":\"\",\"component\":\"\",\"perms\":\"productCategory:delete\",\"icon\":\"\",\"sort\":3,\"visible\":0}', '::1', '2025-05-24 16:39:11');
 INSERT INTO `sys_operation_log` VALUES (44, 1, 'updateMenu', 'PUT', '{\"menuId\":\"37\",\"parentId\":34,\"menuName\":\"删除商品分类\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"productCategory:delete\",\"icon\":\"\",\"sort\":3,\"visible\":0}', '::1', '2025-05-24 16:39:30');
 INSERT INTO `sys_operation_log` VALUES (45, 1, 'assignRoleMenus', 'POST', '{\"roleId\":\"1\",\"menuIds\":[26,33,38,39,40,41,34,35,36,37,27,28,29,30,31,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]}', '::1', '2025-05-24 16:40:11');
+INSERT INTO `sys_operation_log` VALUES (46, 1, 'createMenu', 'POST', '{\"menuName\":\"仓库管理\",\"menuType\":1,\"path\":\"/warehouse\",\"component\":\"\",\"perms\":\"\",\"icon\":\"House\",\"sort\":20,\"visible\":1}', '::1', '2025-05-25 16:24:16');
+INSERT INTO `sys_operation_log` VALUES (47, 1, 'createMenu', 'POST', '{\"parentId\":42,\"menuName\":\"仓库列表\",\"menuType\":2,\"path\":\"/warehouse/list\",\"component\":\"\",\"perms\":\"warehouse:list\",\"icon\":\"\",\"sort\":0,\"visible\":1}', '::1', '2025-05-25 16:25:45');
+INSERT INTO `sys_operation_log` VALUES (48, 1, 'updateMenu', 'PUT', '{\"menuId\":\"43\",\"parentId\":42,\"menuName\":\"仓库列表\",\"menuType\":2,\"path\":\"/warehouse/list\",\"component\":\"\",\"perms\":\"warehouse:list\",\"icon\":\"\",\"sort\":1,\"visible\":1}', '::1', '2025-05-25 16:25:58');
+INSERT INTO `sys_operation_log` VALUES (49, 1, 'createMenu', 'POST', '{\"parentId\":43,\"menuName\":\"新增仓库\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"warehouse:add\",\"icon\":\"\",\"sort\":2,\"visible\":0}', '::1', '2025-05-25 16:26:25');
+INSERT INTO `sys_operation_log` VALUES (50, 1, 'createMenu', 'POST', '{\"parentId\":43,\"menuName\":\"更新仓库\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"warehouse:edit\",\"icon\":\"\",\"sort\":2,\"visible\":0}', '::1', '2025-05-25 16:26:55');
+INSERT INTO `sys_operation_log` VALUES (51, 1, 'updateMenu', 'PUT', '{\"menuId\":\"45\",\"parentId\":43,\"menuName\":\"更新仓库\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"warehouse:edit\",\"icon\":\"\",\"sort\":3,\"visible\":0}', '::1', '2025-05-25 16:27:01');
+INSERT INTO `sys_operation_log` VALUES (52, 1, 'createMenu', 'POST', '{\"parentId\":43,\"menuName\":\"删除仓库\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"warehouse:delete\",\"icon\":\"\",\"sort\":4,\"visible\":0}', '::1', '2025-05-25 16:27:21');
+INSERT INTO `sys_operation_log` VALUES (53, 1, 'assignRoleMenus', 'POST', '{\"roleId\":\"1\",\"menuIds\":[26,33,38,39,40,41,34,35,36,37,27,28,29,30,31,42,43,44,45,46,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]}', '::1', '2025-05-25 16:28:35');
+INSERT INTO `sys_operation_log` VALUES (54, 1, 'createMenu', 'POST', '{\"parentId\":42,\"menuName\":\"库存管理\",\"menuType\":2,\"path\":\"/warehouse/inventory\",\"component\":\"\",\"perms\":\"\",\"icon\":\"\",\"sort\":0,\"visible\":1}', '::1', '2025-05-25 18:38:41');
+INSERT INTO `sys_operation_log` VALUES (55, 1, 'updateMenu', 'PUT', '{\"menuId\":\"47\",\"parentId\":42,\"menuName\":\"库存管理\",\"menuType\":2,\"path\":\"/warehouse/inventory\",\"component\":\"\",\"perms\":\"\",\"icon\":\"\",\"sort\":2,\"visible\":1}', '::1', '2025-05-25 18:38:51');
+INSERT INTO `sys_operation_log` VALUES (56, 1, 'createMenu', 'POST', '{\"parentId\":47,\"menuName\":\"库存列表\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"inventory:list\",\"icon\":\"\",\"sort\":1,\"visible\":0}', '::1', '2025-05-25 18:39:33');
+INSERT INTO `sys_operation_log` VALUES (57, 1, 'createMenu', 'POST', '{\"parentId\":47,\"menuName\":\"新增库存\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"inventory:add\",\"icon\":\"\",\"sort\":2,\"visible\":0}', '::1', '2025-05-25 18:40:19');
+INSERT INTO `sys_operation_log` VALUES (58, 1, 'createMenu', 'POST', '{\"parentId\":47,\"menuName\":\"更新库存\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"inventory:update\",\"icon\":\"\",\"sort\":3,\"visible\":0}', '::1', '2025-05-25 18:40:43');
+INSERT INTO `sys_operation_log` VALUES (59, 1, 'createMenu', 'POST', '{\"parentId\":47,\"menuName\":\"删除库存\",\"menuType\":3,\"path\":\"\",\"component\":\"\",\"perms\":\"inventory:delete\",\"icon\":\"\",\"sort\":4,\"visible\":0}', '::1', '2025-05-25 18:41:02');
+INSERT INTO `sys_operation_log` VALUES (60, 1, 'assignRoleMenus', 'POST', '{\"roleId\":\"1\",\"menuIds\":[26,33,38,39,40,41,34,35,36,37,27,28,29,30,31,42,43,44,45,46,47,48,49,50,51,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]}', '::1', '2025-05-25 18:41:21');
 
 -- ----------------------------
 -- Table structure for sys_role
@@ -300,51 +369,61 @@ CREATE TABLE `sys_role_menu`  (
   `menu_id` bigint NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_role_menu`(`role_id` ASC, `menu_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 173 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '角色菜单权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 268 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '角色菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_menu
 -- ----------------------------
-INSERT INTO `sys_role_menu` VALUES (148, 1, 1);
-INSERT INTO `sys_role_menu` VALUES (149, 1, 2);
-INSERT INTO `sys_role_menu` VALUES (150, 1, 3);
-INSERT INTO `sys_role_menu` VALUES (151, 1, 4);
-INSERT INTO `sys_role_menu` VALUES (152, 1, 5);
-INSERT INTO `sys_role_menu` VALUES (153, 1, 6);
-INSERT INTO `sys_role_menu` VALUES (154, 1, 7);
-INSERT INTO `sys_role_menu` VALUES (155, 1, 8);
-INSERT INTO `sys_role_menu` VALUES (156, 1, 9);
-INSERT INTO `sys_role_menu` VALUES (157, 1, 10);
-INSERT INTO `sys_role_menu` VALUES (158, 1, 11);
-INSERT INTO `sys_role_menu` VALUES (159, 1, 12);
-INSERT INTO `sys_role_menu` VALUES (160, 1, 13);
-INSERT INTO `sys_role_menu` VALUES (161, 1, 14);
-INSERT INTO `sys_role_menu` VALUES (162, 1, 15);
-INSERT INTO `sys_role_menu` VALUES (163, 1, 16);
-INSERT INTO `sys_role_menu` VALUES (164, 1, 17);
-INSERT INTO `sys_role_menu` VALUES (165, 1, 18);
-INSERT INTO `sys_role_menu` VALUES (166, 1, 19);
-INSERT INTO `sys_role_menu` VALUES (167, 1, 20);
-INSERT INTO `sys_role_menu` VALUES (168, 1, 21);
-INSERT INTO `sys_role_menu` VALUES (169, 1, 22);
-INSERT INTO `sys_role_menu` VALUES (170, 1, 23);
-INSERT INTO `sys_role_menu` VALUES (171, 1, 24);
-INSERT INTO `sys_role_menu` VALUES (172, 1, 25);
-INSERT INTO `sys_role_menu` VALUES (133, 1, 26);
-INSERT INTO `sys_role_menu` VALUES (143, 1, 27);
-INSERT INTO `sys_role_menu` VALUES (144, 1, 28);
-INSERT INTO `sys_role_menu` VALUES (145, 1, 29);
-INSERT INTO `sys_role_menu` VALUES (146, 1, 30);
-INSERT INTO `sys_role_menu` VALUES (147, 1, 31);
-INSERT INTO `sys_role_menu` VALUES (134, 1, 33);
-INSERT INTO `sys_role_menu` VALUES (139, 1, 34);
-INSERT INTO `sys_role_menu` VALUES (140, 1, 35);
-INSERT INTO `sys_role_menu` VALUES (141, 1, 36);
-INSERT INTO `sys_role_menu` VALUES (142, 1, 37);
-INSERT INTO `sys_role_menu` VALUES (135, 1, 38);
-INSERT INTO `sys_role_menu` VALUES (136, 1, 39);
-INSERT INTO `sys_role_menu` VALUES (137, 1, 40);
-INSERT INTO `sys_role_menu` VALUES (138, 1, 41);
+INSERT INTO `sys_role_menu` VALUES (243, 1, 1);
+INSERT INTO `sys_role_menu` VALUES (244, 1, 2);
+INSERT INTO `sys_role_menu` VALUES (245, 1, 3);
+INSERT INTO `sys_role_menu` VALUES (246, 1, 4);
+INSERT INTO `sys_role_menu` VALUES (247, 1, 5);
+INSERT INTO `sys_role_menu` VALUES (248, 1, 6);
+INSERT INTO `sys_role_menu` VALUES (249, 1, 7);
+INSERT INTO `sys_role_menu` VALUES (250, 1, 8);
+INSERT INTO `sys_role_menu` VALUES (251, 1, 9);
+INSERT INTO `sys_role_menu` VALUES (252, 1, 10);
+INSERT INTO `sys_role_menu` VALUES (253, 1, 11);
+INSERT INTO `sys_role_menu` VALUES (254, 1, 12);
+INSERT INTO `sys_role_menu` VALUES (255, 1, 13);
+INSERT INTO `sys_role_menu` VALUES (256, 1, 14);
+INSERT INTO `sys_role_menu` VALUES (257, 1, 15);
+INSERT INTO `sys_role_menu` VALUES (258, 1, 16);
+INSERT INTO `sys_role_menu` VALUES (259, 1, 17);
+INSERT INTO `sys_role_menu` VALUES (260, 1, 18);
+INSERT INTO `sys_role_menu` VALUES (261, 1, 19);
+INSERT INTO `sys_role_menu` VALUES (262, 1, 20);
+INSERT INTO `sys_role_menu` VALUES (263, 1, 21);
+INSERT INTO `sys_role_menu` VALUES (264, 1, 22);
+INSERT INTO `sys_role_menu` VALUES (265, 1, 23);
+INSERT INTO `sys_role_menu` VALUES (266, 1, 24);
+INSERT INTO `sys_role_menu` VALUES (267, 1, 25);
+INSERT INTO `sys_role_menu` VALUES (218, 1, 26);
+INSERT INTO `sys_role_menu` VALUES (228, 1, 27);
+INSERT INTO `sys_role_menu` VALUES (229, 1, 28);
+INSERT INTO `sys_role_menu` VALUES (230, 1, 29);
+INSERT INTO `sys_role_menu` VALUES (231, 1, 30);
+INSERT INTO `sys_role_menu` VALUES (232, 1, 31);
+INSERT INTO `sys_role_menu` VALUES (219, 1, 33);
+INSERT INTO `sys_role_menu` VALUES (224, 1, 34);
+INSERT INTO `sys_role_menu` VALUES (225, 1, 35);
+INSERT INTO `sys_role_menu` VALUES (226, 1, 36);
+INSERT INTO `sys_role_menu` VALUES (227, 1, 37);
+INSERT INTO `sys_role_menu` VALUES (220, 1, 38);
+INSERT INTO `sys_role_menu` VALUES (221, 1, 39);
+INSERT INTO `sys_role_menu` VALUES (222, 1, 40);
+INSERT INTO `sys_role_menu` VALUES (223, 1, 41);
+INSERT INTO `sys_role_menu` VALUES (233, 1, 42);
+INSERT INTO `sys_role_menu` VALUES (234, 1, 43);
+INSERT INTO `sys_role_menu` VALUES (235, 1, 44);
+INSERT INTO `sys_role_menu` VALUES (236, 1, 45);
+INSERT INTO `sys_role_menu` VALUES (237, 1, 46);
+INSERT INTO `sys_role_menu` VALUES (238, 1, 47);
+INSERT INTO `sys_role_menu` VALUES (239, 1, 48);
+INSERT INTO `sys_role_menu` VALUES (240, 1, 49);
+INSERT INTO `sys_role_menu` VALUES (241, 1, 50);
+INSERT INTO `sys_role_menu` VALUES (242, 1, 51);
 INSERT INTO `sys_role_menu` VALUES (61, 2, 1);
 INSERT INTO `sys_role_menu` VALUES (62, 2, 2);
 INSERT INTO `sys_role_menu` VALUES (53, 2, 3);
@@ -385,7 +464,7 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'admin', '$2b$10$gGD6U4DSjGV76WSmReFURekr6RcfIPPq2Es64/b5c7jRmhrN93PfS', '汪义强', NULL, '3467520359@qq.com', '19360256621', 5, 1, '', '2025-05-24 15:00:17', '2025-05-22 14:52:33', '2025-05-24 10:41:36');
+INSERT INTO `sys_user` VALUES (1, 'admin', '$2b$10$gGD6U4DSjGV76WSmReFURekr6RcfIPPq2Es64/b5c7jRmhrN93PfS', '汪义强', NULL, '3467520359@qq.com', '19360256621', 5, 1, '', '2025-05-25 17:25:22', '2025-05-22 14:52:33', '2025-05-24 10:41:36');
 INSERT INTO `sys_user` VALUES (2, 'zhang', '$2b$10$Dcq3Sz61PwUauTTsSKPJSeA0Ck4FNdK7TN3vw4IdHRhSaW1nWqlM2', '张昕', NULL, 'wangyiqiang59@gmail.com', '18555444800', 1, 1, NULL, '2025-05-24 15:00:03', '2025-05-23 17:43:44', '2025-05-23 18:44:12');
 
 -- ----------------------------
@@ -405,5 +484,28 @@ CREATE TABLE `sys_user_role`  (
 -- ----------------------------
 INSERT INTO `sys_user_role` VALUES (6, 1, 1);
 INSERT INTO `sys_user_role` VALUES (3, 2, 2);
+
+-- ----------------------------
+-- Table structure for warehouse
+-- ----------------------------
+DROP TABLE IF EXISTS `warehouse`;
+CREATE TABLE `warehouse`  (
+  `warehouse_id` bigint NOT NULL AUTO_INCREMENT COMMENT '仓库ID',
+  `warehouse_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '仓库名称',
+  `warehouse_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '仓库地址',
+  `warehouse_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '仓库状态（0启用、1禁用）',
+  `warehouse_type` int NOT NULL DEFAULT 0 COMMENT '仓库类型（0本地仓、1海外仓、2边境仓、3平台仓）',
+  `product_quantity` int NULL DEFAULT 0 COMMENT '仓库产品数量',
+  `warehouse_manager` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '仓库主管',
+  `contact_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '联系电话',
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  PRIMARY KEY (`warehouse_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '仓库表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of warehouse
+-- ----------------------------
+INSERT INTO `warehouse` VALUES (1, '庄哥仓（美西）', '8042 Whitmore St, Rosemead, CA 91770', '0', 1, 0, '庄哥', '8052801201', '收件人：Liangliang Zhuang \n电话：8052801201');
+INSERT INTO `warehouse` VALUES (2, 'Nick xu海外仓（美西）', 'Nick xu 4695885276 1656 W Orange Grove Ave，pomona，CA，91768', '0', 0, 0, '🍫🥩阿南_', '4695885276', NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;

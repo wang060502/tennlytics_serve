@@ -15,6 +15,8 @@ const productRoutes = require('./routes/productRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const salesRecordRoutes = require('./routes/salesRecordRoutes');
 const productCategoryRoutes = require('./routes/productCategoryRoutes');
+const warehouseRoutes = require('./routes/warehouseRoutes');
+const productWarehouseRoutes = require('./routes/productWarehouseRoutes');
 
 // 测试数据库连接
 testConnection();
@@ -46,6 +48,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/sales-records', salesRecordRoutes);
 app.use('/api/product-categories', productCategoryRoutes);
+app.use('/api/warehouses', warehouseRoutes);
+app.use('/api/product-warehouses', productWarehouseRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {
