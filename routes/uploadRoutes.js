@@ -35,11 +35,18 @@ const upload = multer({
 
 /**
  * @swagger
+ * tags:
+ *   - name: 文件管理
+ *     description: 文件上传相关接口
+ */
+
+/**
+ * @swagger
  * /api/files/upload:
  *   post:
  *     summary: 上传文件
  *     description: 上传单个文件并返回文件URL
- *     tags: [Files]
+ *     tags: [文件管理]
  *     consumes:
  *       - multipart/form-data
  *     parameters:

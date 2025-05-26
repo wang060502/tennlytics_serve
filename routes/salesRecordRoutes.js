@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const salesCtrl = require('../controllers/salesRecordController');
+const { verifyToken } = require('../middleware/auth');
+
+/**
+ * @swagger
+ * tags:
+ *   - name: 销售记录管理
+ *     description: 销售记录相关接口
+ */
 
 /**
  * @swagger
  * /api/sales-records:
  *   post:
  *     tags:
- *       - SalesRecord
+ *       - 销售记录管理
  *     summary: 新增产品销售记录
  *     description: 用户与客户关联创建产品销售记录（支持一次创建多个产品的销售记录）
  *     requestBody:
@@ -101,7 +109,7 @@ router.post('/', salesCtrl.createSalesRecord);
  * /api/sales-records/customer/{customerId}:
  *   get:
  *     tags:
- *       - SalesRecord
+ *       - 销售记录管理
  *     summary: 获取单个客户的产品销售记录列表
  *     description: 查看指定客户的所有产品销售记录，支持分页查询
  *     parameters:
@@ -220,5 +228,46 @@ router.post('/', salesCtrl.createSalesRecord);
  *         description: 获取销售记录失败
  */
 router.get('/customer/:customerId', salesCtrl.getCustomerSalesRecords);
+
+/**
+ * @swagger
+ * /api/sales-records/customer/{customerId}/sales-time/{salesTime}:
+ *   delete:
+ *     tags:
+ *       - 销售记录管理
+ *     summary: 删除指定客户的销售记录
+ *     description: 删除指定客户在特定时间点的所有销售记录，并更新客户的总消费金额
+ *     parameters:
+ *       - in: path
+ *         name: customerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 客户ID
+ *       - in: path
+ *         name: salesTime
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: 销售时间
+ *     responses:
+ *       200:
+ *         description: 销售记录删除成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 销售记录删除成功
+ *       500:
+ *         description: 删除销售记录失败
+ */
+router.delete('/customer/:customerId/sales-time/:salesTime', verifyToken, salesCtrl.deleteSalesRecord);
 
 module.exports = router;

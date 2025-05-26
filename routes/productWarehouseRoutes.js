@@ -8,8 +8,8 @@ router.use(verifyToken);
 /**
  * @swagger
  * tags:
- *   - name: ProductWarehouse
- *     description: 产品-仓库库存管理
+ *   - name: 产品库存管理
+ *     description: 产品-仓库库存管理相关接口
  */
 
 /**
@@ -17,7 +17,7 @@ router.use(verifyToken);
  * /api/product-warehouses:
  *   get:
  *     tags:
- *       - ProductWarehouse
+ *       - 产品库存管理
  *     summary: 获取所有产品-仓库库存
  *     description: 获取所有产品在各仓库的库存信息，按产品分组，每个产品下包含所有仓库的库存列表
  *     parameters:
@@ -126,7 +126,7 @@ router.get('/', checkPermission('inventory:list'), productWarehouseCtrl.getProdu
  * /api/product-warehouses/{id}:
  *   get:
  *     tags:
- *       - ProductWarehouse
+ *       - 产品库存管理
  *     summary: 获取单条产品-仓库库存详情
  *     parameters:
  *       - in: path
@@ -160,7 +160,7 @@ router.get('/:id', checkPermission('inventory:list'), productWarehouseCtrl.getPr
  * /api/product-warehouses:
  *   post:
  *     tags:
- *       - ProductWarehouse
+ *       - 产品库存管理
  *     summary: 新增产品-仓库库存记录（支持批量）
  *     requestBody:
  *       required: true
@@ -210,7 +210,7 @@ router.post('/', checkPermission('inventory:add'), productWarehouseCtrl.createPr
  * /api/product-warehouses/{id}:
  *   put:
  *     tags:
- *       - ProductWarehouse
+ *       - 产品库存管理
  *     summary: 更新产品-仓库库存记录（支持批量新增和更新）
  *     description: |
  *       批量更新一款产品下多个仓库的多个尺码库存，支持以下操作：
@@ -299,7 +299,7 @@ router.put('/:id', checkPermission('inventory:update'), productWarehouseCtrl.upd
  * /api/product-warehouses/{product_id}:
  *   delete:
  *     tags:
- *       - ProductWarehouse
+ *       - 产品库存管理
  *     summary: 删除产品-仓库库存记录
  *     parameters:
  *       - in: path

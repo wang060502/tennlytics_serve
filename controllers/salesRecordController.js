@@ -161,3 +161,97 @@ exports.getCustomerSalesRecords = async (req, res) => {
         res.status(500).json({ code: 500, error: '获取销售记录失败' });
     }
 };
+
+// 删除销售记录
+exports.deleteSalesRecord = async (req, res) => {
+    try {
+        const { customerId, salesTime } = req.params;
+        const creatorId = req.user.userId;
+        // 验证参数
+        if (!customerId || !salesTime) {
+            return res.status(400).json({ 
+                code: 400, 
+                error: '客户ID和销售时间不能为空' 
+            });
+        }
+
+        // 开始事务
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // 1. 先查询该时间点的所有记录
+            const [records] = await connection.query(
+                `SELECT record_id, total_price, creator 
+                 FROM product_sales_record 
+                 WHERE customer_id = ? 
+                 AND sales_time = CONVERT_TZ(?, '+00:00', @@session.time_zone)`,
+                [customerId, salesTime]
+            );
+
+            if (!records || records.length === 0) {
+                return res.status(404).json({
+                    code: 404,
+                    error: '未找到指定时间点的销售记录',
+                    debug: {
+                        customerId,
+                        salesTime
+                    }
+                });
+            }
+
+            // 检查权限
+            const recordCreator = records[0].creator;
+            if (recordCreator !== creatorId) {
+                return res.status(403).json({
+                    code: 403,
+                    error: '你无权删除他人的销售记录'
+                });
+            }
+
+            // 2. 计算总金额
+            const totalAmount = records.reduce((sum, record) => sum + parseFloat(record.total_price || 0), 0);
+
+            // 3. 删除销售记录
+            const recordIds = records.map(record => record.record_id);
+            const [deleteResult] = await connection.query(
+                `DELETE FROM product_sales_record 
+                 WHERE record_id IN (?)`,
+                [recordIds]
+            );
+
+            if (deleteResult.affectedRows === 0) {
+                throw new Error('删除销售记录失败');
+            }
+
+            // 4. 更新客户的总消费金额
+            await connection.query(
+                `UPDATE customer 
+                 SET deal_price = GREATEST(COALESCE(deal_price, 0) - ?, 0),
+                     update_time = NOW()
+                 WHERE customer_id = ?`,
+                [totalAmount, customerId]
+            );
+
+            await connection.commit();
+            res.json({ 
+                code: 200, 
+                message: '销售记录删除成功',
+                deletedCount: deleteResult.affectedRows,
+                totalAmount
+            });
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('删除销售记录失败:', error);
+        res.status(500).json({ 
+            code: 500, 
+            error: '删除销售记录失败', 
+            detail: error.message 
+        });
+    }
+};

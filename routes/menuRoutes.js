@@ -11,10 +11,17 @@ const {
 
 /**
  * @swagger
+ * tags:
+ *   - name: 菜单管理
+ *     description: 菜单管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/menus:
  *   post:
  *     tags:
- *       - Menus
+ *       - 菜单管理
  *     summary: 创建菜单
  *     security:
  *       - bearerAuth: []
@@ -68,7 +75,7 @@ router.post('/', verifyToken, checkPermission('menu:add'), createMenu);
  * /api/menus/{menuId}:
  *   put:
  *     tags:
- *       - Menus
+ *       - 菜单管理
  *     summary: 更新菜单
  *     security:
  *       - bearerAuth: []
@@ -126,7 +133,7 @@ router.put('/:menuId', verifyToken, checkPermission('menu:edit'), updateMenu);
  * /api/menus/{menuId}:
  *   delete:
  *     tags:
- *       - Menus
+ *       - 菜单管理
  *     summary: 删除菜单
  *     security:
  *       - bearerAuth: []
@@ -152,7 +159,7 @@ router.delete('/:menuId', verifyToken, checkPermission('menu:delete'), deleteMen
  * /api/menus:
  *   get:
  *     tags:
- *       - Menus
+ *       - 菜单管理
  *     summary: 获取菜单列表
  *     security:
  *       - bearerAuth: []
@@ -218,7 +225,7 @@ router.get('/', verifyToken, checkPermission('menu:list'), getMenuList);
  * /api/menus/user:
  *   get:
  *     tags:
- *       - Menus
+ *       - 菜单管理
  *     summary: 获取当前用户的菜单权限
  *     security:
  *       - bearerAuth: []

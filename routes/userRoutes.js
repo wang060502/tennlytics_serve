@@ -14,10 +14,17 @@ const {
 
 /**
  * @swagger
+ * tags:
+ *   - name: 用户管理
+ *     description: 用户管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/users/register:
  *   post:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 用户注册
  *     description: 注册新用户
  *     requestBody:
@@ -71,7 +78,7 @@ router.post('/register', register);
  * /api/users/login:
  *   post:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 用户登录
  *     description: 用户登录接口
  *     requestBody:
@@ -135,7 +142,7 @@ router.post('/login', login);
  * /api/users/profile:
  *   get:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 获取用户信息
  *     description: 获取当前登录用户的信息
  *     security:
@@ -195,7 +202,7 @@ router.get('/profile', verifyToken, getProfile);
  * /api/users/profile:
  *   put:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 更新用户信息
  *     description: 更新当前登录用户的信息
  *     security:
@@ -239,7 +246,7 @@ router.put('/profile', verifyToken, updateProfile);
  * /api/users:
  *   get:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 获取用户列表
  *     description: 获取用户列表，支持分页和条件查询
  *     security:
@@ -338,7 +345,7 @@ router.get('/', verifyToken, checkPermission('user:list'), getUserList);
  * /api/users/{userId}/status:
  *   put:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 修改用户状态
  *     description: 修改用户状态（启用/禁用）
  *     security:
@@ -376,7 +383,7 @@ router.put('/:userId/status', verifyToken, checkPermission('user:edit'), updateU
  * /api/users/{userId}/password:
  *   put:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 重置用户密码
  *     description: 重置指定用户的密码
  *     security:
@@ -414,7 +421,7 @@ router.put('/:userId/password', verifyToken, checkPermission('user:edit'), reset
  * /api/users/{userId}:
  *   put:
  *     tags:
- *       - Users
+ *       - 用户管理
  *     summary: 更新用户信息（管理员）
  *     security:
  *       - bearerAuth: []

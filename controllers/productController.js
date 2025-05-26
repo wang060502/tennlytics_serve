@@ -204,3 +204,24 @@ exports.deleteProduct = async (req, res) => {
         res.status(500).json({ code: 500, error: '删除产品失败', detail: error.message });
     }
 };
+
+// 分类下产品数量统计
+exports.getProductCategoryStats = async (req, res) => {
+    try {
+        const sql = `
+            SELECT 
+                pc.category_id, 
+                pc.category_name, 
+                COUNT(p.product_id) AS product_count
+            FROM product_category pc
+            LEFT JOIN product p ON pc.category_id = p.category_id
+            GROUP BY pc.category_id, pc.category_name
+            ORDER BY product_count DESC
+        `;
+        const stats = await query(sql);
+        res.json({ code: 200, data: stats });
+    } catch (error) {
+        console.error('获取产品分类统计失败:', error);
+        res.status(500).json({ code: 500, error: '获取产品分类统计失败', detail: error.message });
+    }
+};

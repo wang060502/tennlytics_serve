@@ -8,10 +8,17 @@ router.use(verifyToken);
 
 /**
  * @swagger
+ * tags:
+ *   - name: 客户管理
+ *     description: 客户管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/customers:
  *   post:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 新增客户
  *     description: 新增一条客户信息
  *     requestBody:
@@ -82,7 +89,7 @@ router.post('/', checkPermission('customer:add'), customerCtrl.createCustomer);
  * /api/customers:
  *   get:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 获取客户列表
  *     description: 查询客户信息，支持分页和条件查询
  *     parameters:
@@ -189,13 +196,147 @@ router.post('/', checkPermission('customer:add'), customerCtrl.createCustomer);
  */
 router.get('/', checkPermission('customer:list'), customerCtrl.getCustomerList);
 
+/**
+ * @swagger
+ * /api/customers/consumption-ranking:
+ *   get:
+ *     tags:
+ *       - 客户管理
+ *     summary: 获取客户消费排行
+ *     description: 统计客户消费金额排行，包含客户名称、级别、成交金额和占比
+ *     parameters:
+ *       - in: query
+ *         name: customer_level
+ *         schema:
+ *           type: string
+ *           enum: [重要客户, 一般客户]
+ *         description: 客户级别筛选
+ *     responses:
+ *       200:
+ *         description: 成功获取消费排行
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total_amount:
+ *                       type: number
+ *                       format: float
+ *                       description: 总成交金额
+ *                     ranking_list:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           customer_name:
+ *                             type: string
+ *                             description: 客户名称
+ *                           customer_level:
+ *                             type: string
+ *                             description: 客户级别
+ *                           deal_price:
+ *                             type: number
+ *                             format: float
+ *                             description: 成交金额
+ *                           percentage:
+ *                             type: string
+ *                             description: 占总成交金额的百分比
+ *       500:
+ *         description: 获取消费排行失败
+ */
+router.get('/consumption-ranking', checkPermission('customer:list'), customerCtrl.getCustomerConsumptionRanking);
+/**
+ * @swagger
+ * /api/customers/stats:
+ *   get:
+ *     tags:
+ *       - 客户管理
+ *     summary: 获取客户统计数据
+ *     description: 统计客户状态、级别、付款状态、总客户数和转化率
+ *     parameters:
+ *       - in: query
+ *         name: customer_status
+ *         schema:
+ *           type: string
+ *           enum: [潜在客户, 成交客户, 战略合作, 无效客户]
+ *         description: 客户状态筛选
+ *       - in: query
+ *         name: customer_level
+ *         schema:
+ *           type: string
+ *           enum: [重要客户, 一般客户]
+ *         description: 客户级别筛选
+ *       - in: query
+ *         name: payment_status
+ *         schema:
+ *           type: string
+ *           enum: [待付款, 已付款部分, 已结清]
+ *         description: 付款状态筛选
+ *     responses:
+ *       200:
+ *         description: 成功获取统计数据
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       description: 总客户数
+ *                     conversion_rate:
+ *                       type: string
+ *                       description: 客户转化率（成交客户数/总客户数）
+ *                       example: "25.50%"
+ *                     status_stats:
+ *                       type: object
+ *                       properties:
+ *                         潜在客户:
+ *                           type: integer
+ *                         成交客户:
+ *                           type: integer
+ *                         战略合作:
+ *                           type: integer
+ *                         无效客户:
+ *                           type: integer
+ *                     level_stats:
+ *                       type: object
+ *                       properties:
+ *                         重要客户:
+ *                           type: integer
+ *                         一般客户:
+ *                           type: integer
+ *                     payment_stats:
+ *                       type: object
+ *                       properties:
+ *                         待付款:
+ *                           type: integer
+ *                         已付款部分:
+ *                           type: integer
+ *                         已结清:
+ *                           type: integer
+ *       500:
+ *         description: 获取统计数据失败
+ */
+router.get('/stats', checkPermission('customer:list'), customerCtrl.getCustomerStats);
 
 /**
  * @swagger
  * /api/customers/creators:
  *   get:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 获取客户创建者列表
  *     description: 获取所有创建过客户的用户列表
  *     responses:
@@ -225,13 +366,71 @@ router.get('/', checkPermission('customer:list'), customerCtrl.getCustomerList);
  */
 router.get('/creators', verifyToken, checkPermission('customer:list'), customerCtrl.getCustomerCreators);
 
-
+/**
+ * @swagger
+ * /api/customers/sales-performance:
+ *   get:
+ *     tags:
+ *       - 客户管理
+ *     summary: 获取客户销售业绩统计
+ *     description: 统计每个创建者的所有客户数量和成交金额，按业绩从高到低排序
+ *     responses:
+ *       200:
+ *         description: 成功获取销售业绩统计
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     performance_list:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: integer
+ *                             description: 用户ID
+ *                           username:
+ *                             type: string
+ *                             description: 用户名
+ *                           real_name:
+ *                             type: string
+ *                             description: 真实姓名
+ *                           customer_count:
+ *                             type: integer
+ *                             description: 总客户数
+ *                           deal_customer_count:
+ *                             type: integer
+ *                             description: 成交客户数
+ *                           potential_customer_count:
+ *                             type: integer
+ *                             description: 潜在客户数
+ *                           strategic_customer_count:
+ *                             type: integer
+ *                             description: 战略合作客户数
+ *                           invalid_customer_count:
+ *                             type: integer
+ *                             description: 无效客户数
+ *                           total_amount:
+ *                             type: number
+ *                             format: float
+ *                             description: 总成交金额
+ *       500:
+ *         description: 获取销售业绩统计失败
+ */
+router.get('/sales-performance', checkPermission('customer:list'), customerCtrl.getCustomerSalesPerformance);
 /**
  * @swagger
  * /api/customers/{customerId}:
  *   get:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 获取客户详情
  *     description: 根据客户ID获取客户详情
  *     parameters:
@@ -291,12 +490,15 @@ router.get('/creators', verifyToken, checkPermission('customer:list'), customerC
  */
 router.get('/:customerId', checkPermission('customer:list'), customerCtrl.getCustomer);
 
+
+
+
 /**
  * @swagger
  * /api/customers/{customerId}:
  *   put:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 修改客户
  *     description: 根据客户ID修改客户信息
  *     parameters:
@@ -358,7 +560,7 @@ router.put('/:customerId', checkPermission('customer:edit'), customerCtrl.update
  * /api/customers/{customerId}:
  *   delete:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 删除客户
  *     description: 根据客户ID删除客户
  *     parameters:
@@ -392,7 +594,7 @@ router.delete('/:customerId', checkPermission('customer:delete'), customerCtrl.d
  * /api/customers/batch:
  *   delete:
  *     tags:
- *       - Customer
+ *       - 客户管理
  *     summary: 批量删除客户
  *     description: 根据客户ID数组批量删除客户
  *     requestBody:
@@ -429,5 +631,7 @@ router.delete('/:customerId', checkPermission('customer:delete'), customerCtrl.d
  *         description: 批量删除客户失败
  */
 router.delete('/batch', checkPermission('customer:delete'), customerCtrl.deleteCustomer);
+
+
 
 module.exports = router;

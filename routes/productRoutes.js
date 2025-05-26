@@ -1,13 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const productCtrl = require('../controllers/productController');
+const { verifyToken, checkPermission } = require('../middleware/auth');
+/**
+ * @swagger
+ * tags:
+ *   - name: 产品管理
+ *     description: 产品管理相关接口
+ */
 
 /**
  * @swagger
  * /api/products:
  *   post:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 新增产品
  *     description: 新增一条产品信息
  *     requestBody:
@@ -66,14 +73,14 @@ const productCtrl = require('../controllers/productController');
  *       500:
  *         description: 产品创建失败
  */
-router.post('/', productCtrl.createProduct);
+router.post('/', verifyToken, checkPermission('product:add'), productCtrl.createProduct);
 
 /**
  * @swagger
  * /api/products:
  *   get:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 获取产品列表
  *     description: 查询产品信息，支持分页和条件查询
  *     parameters:
@@ -182,7 +189,7 @@ router.get('/', productCtrl.getProductList);
  * /api/products/{productId}:
  *   get:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 获取产品详情
  *     description: 根据产品ID获取产品详情
  *     parameters:
@@ -242,7 +249,7 @@ router.get('/:productId', productCtrl.getProduct);
  * /api/products/{productId}:
  *   put:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 修改产品
  *     description: 根据产品ID修改产品信息
  *     parameters:
@@ -297,14 +304,14 @@ router.get('/:productId', productCtrl.getProduct);
  *       500:
  *         description: 产品更新失败
  */
-router.put('/:productId', productCtrl.updateProduct);
+router.put('/:productId', verifyToken, checkPermission('product:edit'), productCtrl.updateProduct);
 
 /**
  * @swagger
  * /api/products/{productId}:
  *   delete:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 删除产品
  *     description: 根据产品ID删除产品
  *     parameters:
@@ -331,14 +338,14 @@ router.put('/:productId', productCtrl.updateProduct);
  *       500:
  *         description: 产品删除失败
  */
-router.delete('/:productId', productCtrl.deleteProduct);
+router.delete('/:productId', verifyToken, checkPermission('product:delete'), productCtrl.deleteProduct);
 
 /**
  * @swagger
  * /api/products/batch:
  *   delete:
  *     tags:
- *       - Product
+ *       - 产品管理
  *     summary: 批量删除产品
  *     description: 根据产品ID数组批量删除产品
  *     requestBody:
@@ -374,6 +381,41 @@ router.delete('/:productId', productCtrl.deleteProduct);
  *       500:
  *         description: 批量删除产品失败
  */
-router.delete('/batch', productCtrl.deleteProduct);
+router.delete('/batch', verifyToken, checkPermission('product:delete'), productCtrl.deleteProduct);
+
+/**
+ * @swagger
+ * /api/products/stats/category:
+ *   get:
+ *     tags:
+ *       - 产品管理
+ *     summary: 产品分类统计
+ *     description: 统计各个分类下的产品数量
+ *     responses:
+ *       200:
+ *         description: 统计成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category_id:
+ *                         type: integer
+ *                       category_name:
+ *                         type: string
+ *                       product_count:
+ *                         type: integer
+ *       500:
+ *         description: 统计失败
+ */
+router.get('/stats/category', verifyToken, checkPermission('product:view'), productCtrl.getProductCategoryStats);
 
 module.exports = router;

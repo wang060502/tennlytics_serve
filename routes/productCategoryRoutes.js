@@ -8,10 +8,17 @@ router.use(verifyToken);
 
 /**
  * @swagger
+ * tags:
+ *   - name: 产品分类管理
+ *     description: 产品分类管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/product-categories:
  *   post:
  *     tags:
- *       - ProductCategory
+ *       - 产品分类管理
  *     summary: 新增产品分类
  *     description: 新增一个产品分类
  *     security:
@@ -56,7 +63,7 @@ router.post('/', checkPermission('productCategory:add'), categoryCtrl.createCate
  * /api/product-categories:
  *   get:
  *     tags:
- *       - ProductCategory
+ *       - 产品分类管理
  *     summary: 获取产品分类列表
  *     description: 获取所有产品分类
  *     security:
@@ -99,7 +106,7 @@ router.get('/', checkPermission('productCategory:list'), categoryCtrl.getCategor
  * /api/product-categories/{categoryId}:
  *   get:
  *     tags:
- *       - ProductCategory
+ *       - 产品分类管理
  *     summary: 获取产品分类详情
  *     description: 根据ID获取产品分类详情
  *     security:
@@ -149,7 +156,7 @@ router.get('/:categoryId', checkPermission('productCategory:list'), categoryCtrl
  * /api/product-categories/{categoryId}:
  *   put:
  *     tags:
- *       - ProductCategory
+ *       - 产品分类管理
  *     summary: 修改产品分类
  *     description: 根据ID修改产品分类
  *     security:
@@ -198,7 +205,7 @@ router.put('/:categoryId', checkPermission('productCategory:edit'), categoryCtrl
  * /api/product-categories/{categoryId}:
  *   delete:
  *     tags:
- *       - ProductCategory
+ *       - 产品分类管理
  *     summary: 删除产品分类
  *     description: 根据ID删除产品分类
  *     security:

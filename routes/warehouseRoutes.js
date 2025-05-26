@@ -7,8 +7,8 @@ const { verifyToken } = require('../middleware/auth');
 /**
  * @swagger
  * tags:
- *   - name: Warehouse
- *     description: 仓库管理
+ *   - name: 仓库管理
+ *     description: 仓库管理相关接口
  */
 
 /**
@@ -16,7 +16,7 @@ const { verifyToken } = require('../middleware/auth');
  * /api/warehouses:
  *   get:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 获取所有仓库列表
  *     description: 获取所有仓库的基本信息，支持分页和条件查询
  *     parameters:
@@ -84,7 +84,7 @@ router.get('/', verifyToken, checkPermission('warehouse:list'), warehouseCtrl.ge
  * /api/warehouses/{id}:
  *   get:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 获取单个仓库详情
  *     parameters:
  *       - in: path
@@ -118,7 +118,7 @@ router.get('/:id', verifyToken, checkPermission('warehouse:view'), warehouseCtrl
  * /api/warehouses:
  *   post:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 新增仓库
  *     requestBody:
  *       required: true
@@ -150,7 +150,7 @@ router.post('/', verifyToken, checkPermission('warehouse:add'), warehouseCtrl.cr
  * /api/warehouses/{id}:
  *   put:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 更新仓库
  *     parameters:
  *       - in: path
@@ -189,7 +189,7 @@ router.put('/:id', verifyToken, checkPermission('warehouse:edit'), warehouseCtrl
  * /api/warehouses/{id}:
  *   delete:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 删除仓库
  *     parameters:
  *       - in: path
@@ -222,7 +222,7 @@ router.delete('/:id', verifyToken, checkPermission('warehouse:delete'), warehous
  * /api/warehouses:
  *   delete:
  *     tags:
- *       - Warehouse
+ *       - 仓库管理
  *     summary: 批量删除仓库
  *     description: 批量删除指定ID的仓库
  *     requestBody:

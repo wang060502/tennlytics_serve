@@ -5,9 +5,17 @@ const { getOperationLogs } = require('../controllers/operationLogController');
 
 /**
  * @swagger
+ * tags:
+ *   - name: 操作日志管理
+ *     description: 操作日志管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/operation-logs:
  *   get:
- *     tags: [OperationLogs]
+ *     tags:
+ *       - 操作日志管理
  *     summary: 查询操作日志
  *     security:
  *       - bearerAuth: []

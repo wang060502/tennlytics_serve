@@ -10,9 +10,17 @@ const {
 
 /**
  * @swagger
+ * tags:
+ *   - name: 部门管理
+ *     description: 部门管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/depts:
  *   post:
- *     tags: [Depts]
+ *     tags:
+ *       - 部门管理
  *     summary: 创建部门
  *     security:
  *       - bearerAuth: []
@@ -49,7 +57,8 @@ router.post('/', verifyToken, checkPermission('dept:add'), createDept);
  * @swagger
  * /api/depts/{deptId}:
  *   put:
- *     tags: [Depts]
+ *     tags:
+ *       - 部门管理
  *     summary: 更新部门
  *     security:
  *       - bearerAuth: []
@@ -91,7 +100,8 @@ router.put('/:deptId', verifyToken, checkPermission('dept:edit'), updateDept);
  * @swagger
  * /api/depts/{deptId}:
  *   delete:
- *     tags: [Depts]
+ *     tags:
+ *       - 部门管理
  *     summary: 删除部门
  *     security:
  *       - bearerAuth: []
@@ -116,7 +126,8 @@ router.delete('/:deptId', verifyToken, checkPermission('dept:delete'), deleteDep
  * @swagger
  * /api/depts:
  *   get:
- *     tags: [Depts]
+ *     tags:
+ *       - 部门管理
  *     summary: 获取部门树
  *     security:
  *       - bearerAuth: []

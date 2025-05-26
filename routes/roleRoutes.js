@@ -13,10 +13,17 @@ const { getUnassignedUsers, assignUserRoles } = require('../controllers/userCont
 
 /**
  * @swagger
+ * tags:
+ *   - name: 角色管理
+ *     description: 角色管理相关接口
+ */
+
+/**
+ * @swagger
  * /api/roles:
  *   post:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 创建角色
  *     security:
  *       - bearerAuth: []
@@ -55,7 +62,7 @@ router.post('/', verifyToken, checkPermission('role:add'), createRole);
  * /api/roles/{roleId}:
  *   put:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 更新角色
  *     security:
  *       - bearerAuth: []
@@ -95,7 +102,7 @@ router.put('/:roleId', verifyToken, checkPermission('role:edit'), updateRole);
  * /api/roles/{roleId}:
  *   delete:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 删除角色
  *     security:
  *       - bearerAuth: []
@@ -121,7 +128,7 @@ router.delete('/:roleId', verifyToken, checkPermission('role:delete'), deleteRol
  * /api/roles:
  *   get:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 获取角色列表
  *     security:
  *       - bearerAuth: []
@@ -208,7 +215,7 @@ router.get('/', verifyToken, checkPermission('role:list'), getRoleList);
  * /api/roles/{roleId}/menus:
  *   post:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 分配角色菜单权限
  *     security:
  *       - bearerAuth: []
@@ -246,7 +253,7 @@ router.post('/:roleId/menus', verifyToken, checkPermission('role:assign'), assig
  * /api/roles/{roleId}/menus:
  *   get:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 获取角色已绑定的菜单列表
  *     security:
  *       - bearerAuth: []
@@ -311,7 +318,7 @@ router.get('/:roleId/menus', verifyToken, checkPermission('role:list'), getRoleM
  * /api/roles/unassigned-users:
  *   get:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 获取未绑定任何角色的用户列表
  *     description: 获取系统中未绑定任何角色的用户列表
  *     security:
@@ -383,7 +390,7 @@ router.get('/unassigned-users', verifyToken, checkPermission('user:list'), getUn
  * /api/roles/{roleId}/users:
  *   post:
  *     tags:
- *       - Roles
+ *       - 角色管理
  *     summary: 为角色批量分配用户
  *     description: 为指定角色批量分配用户
  *     security:
