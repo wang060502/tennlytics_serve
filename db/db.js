@@ -5,7 +5,7 @@ const dbConfig = {
   host: 'localhost',
   user: 'root',
   password: '123456',
-  database: 'erpserve',
+  database: 'synergism_serve',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

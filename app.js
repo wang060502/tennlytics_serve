@@ -6,22 +6,19 @@ const menuRoutes = require('./routes/menuRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const deptRoutes = require('./routes/deptRoutes');
 const operationLogRoutes = require('./routes/operationLogRoutes');
+const accountPasswordRoutes = require('./routes/accountPasswordRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 const path = require('path');
+// const cors = require('cors');
 const app = express();
 const port = 3000;
-const productRoutes = require('./routes/productRoutes');
-const customerRoutes = require('./routes/customerRoutes');
-const salesRecordRoutes = require('./routes/salesRecordRoutes');
-const productCategoryRoutes = require('./routes/productCategoryRoutes');
-const warehouseRoutes = require('./routes/warehouseRoutes');
-const productWarehouseRoutes = require('./routes/productWarehouseRoutes');
 
 // 测试数据库连接
 testConnection();
 
 // 中间件设置
+// app.use(cors());
 app.use(express.json()); // 用于解析 JSON 请求体
 app.use(express.urlencoded({ extended: true })); // 用于解析 URL 编码的请求体
 
@@ -44,12 +41,7 @@ app.use('/api/menus', menuRoutes);
 app.use('/api/files', uploadRoutes);
 app.use('/api/depts', deptRoutes);
 app.use('/api/operation-logs', operationLogRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/sales-records', salesRecordRoutes);
-app.use('/api/product-categories', productCategoryRoutes);
-app.use('/api/warehouses', warehouseRoutes);
-app.use('/api/product-warehouses', productWarehouseRoutes);
+app.use('/api/account-passwords', accountPasswordRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {
@@ -64,7 +56,7 @@ app.get('/health', (req, res) => {
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ code: 500, error: '服务器内部错误' });
 });
 
 // 初始化定时任务
@@ -76,3 +68,5 @@ app.listen(port, () => {
   console.log(`API Documentation available at http://localhost:${port}/api-docs`);
   console.log(`Swagger JSON available at http://localhost:${port}/swagger.json`);
 });
+
+module.exports = app;

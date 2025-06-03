@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'ERP API Documentation',
+      title: '项目协同管理系统 API Documentation',
       version: '1.0.0',
-      description: 'ERP API 接口文档',
+      description: '项目协同管理系统 API 接口文档',
     },
     servers: [
       { url: 'http://localhost:3000' }
